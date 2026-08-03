@@ -15,6 +15,7 @@ use App\Models\GoodsReceiptLine;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
 use App\Models\Supplier;
+use App\Models\SupplierDebitNote;
 use App\Models\SupplierInvoice;
 use App\Models\SupplierInvoiceLine;
 use App\Models\SupplierInvoiceMatch;
@@ -24,6 +25,7 @@ use App\Services\Purchasing\SupplierInvoiceService;
 use App\Support\Purchasing\SupplierInvoiceMatchStatusRegistry;
 use App\Support\Purchasing\SupplierInvoiceStatusRegistry;
 use App\Support\Responses\CommonResponseService;
+use App\Support\Tenancy\TenantContext;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,18 +35,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Support\Tenancy\TenantContext;
-use App\Models\SupplierDebitNote;
 
 final class SupplierInvoiceController extends Controller
 {
     public function __construct(
-    private readonly SupplierInvoiceService $supplierInvoiceService,
-    private readonly SupplierInvoiceStatusRegistry $statusRegistry,
-    private readonly SupplierInvoiceMatchStatusRegistry $matchStatusRegistry,
-    private readonly BranchAccessService $branchAccessService,
-    private readonly TenantContext $tenantContext,
-    private readonly CommonResponseService $responseService,
+        private readonly SupplierInvoiceService $supplierInvoiceService,
+        private readonly SupplierInvoiceStatusRegistry $statusRegistry,
+        private readonly SupplierInvoiceMatchStatusRegistry $matchStatusRegistry,
+        private readonly BranchAccessService $branchAccessService,
+        private readonly TenantContext $tenantContext,
+        private readonly CommonResponseService $responseService,
     ) {
     }
 

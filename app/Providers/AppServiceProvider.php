@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Accounting\SupplierDebitNoteAccountingGateway;
 use App\Contracts\Accounting\SupplierInvoiceAccountingGateway;
 use App\Models\AccountingPeriod;
 use App\Models\AuditLog;
@@ -16,7 +17,9 @@ use App\Models\GoodsReceipt;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseReturn;
 use App\Models\Supplier;
+use App\Models\SupplierDebitNote;
 use App\Models\SupplierInvoice;
 use App\Models\TenantFile;
 use App\Models\Unit;
@@ -32,12 +35,15 @@ use App\Policies\GoodsReceiptPolicy;
 use App\Policies\ProductCategoryPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\PurchaseOrderPolicy;
+use App\Policies\PurchaseReturnPolicy;
 use App\Policies\RolePolicy;
+use App\Policies\SupplierDebitNotePolicy;
 use App\Policies\SupplierInvoicePolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\TenantFilePolicy;
 use App\Policies\UnitPolicy;
 use App\Policies\UserNotificationPolicy;
+use App\Services\Accounting\UnconfiguredSupplierDebitNoteAccountingGateway;
 use App\Services\Accounting\UnconfiguredSupplierInvoiceAccountingGateway;
 use App\Support\Exports\Definitions\AuditLogExportDefinition;
 use App\Support\Exports\ExportRegistry;
@@ -46,12 +52,6 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Role;
-use App\Models\PurchaseReturn;
-use App\Policies\PurchaseReturnPolicy;
-use App\Contracts\Accounting\SupplierDebitNoteAccountingGateway;
-use App\Models\SupplierDebitNote;
-use App\Policies\SupplierDebitNotePolicy;
-use App\Services\Accounting\UnconfiguredSupplierDebitNoteAccountingGateway;
 
 final class AppServiceProvider extends ServiceProvider
 {
@@ -59,8 +59,7 @@ final class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(
             TenantContext::class,
-            static fn (): TenantContext =>
-                new TenantContext(),
+            static fn (): TenantContext => new TenantContext(),
         );
 
         /*
@@ -71,6 +70,16 @@ final class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             SupplierInvoiceAccountingGateway::class,
             UnconfiguredSupplierInvoiceAccountingGateway::class,
+        );
+
+        /*
+         * Supplier Debit Note posting and reversal remain fail-closed
+         * until the Accounts Payable and journal-entry module replaces
+         * this implementation with a real accounting gateway.
+         */
+        $this->app->bind(
+            SupplierDebitNoteAccountingGateway::class,
+            UnconfiguredSupplierDebitNoteAccountingGateway::class,
         );
 
         $this->app->singleton(
@@ -176,7 +185,7 @@ final class AppServiceProvider extends ServiceProvider
             PurchaseReturn::class,
             PurchaseReturnPolicy::class,
         );
-        
+
         Gate::policy(
             SupplierDebitNote::class,
             SupplierDebitNotePolicy::class,

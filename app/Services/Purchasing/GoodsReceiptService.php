@@ -2452,111 +2452,111 @@ final class GoodsReceiptService
     }
 
     public function delete(
-    GoodsReceipt $goodsReceipt,
-    User $actor,
-): void {
-    $tenantId = (int) $this->tenantContext
-        ->tenant()
-        ->getKey();
+        GoodsReceipt $goodsReceipt,
+        User $actor,
+    ): void {
+        $tenantId = (int) $this->tenantContext
+            ->tenant()
+            ->getKey();
 
-    $this->ensureActorBelongsToTenant(
-        actor: $actor,
-        tenantId: $tenantId,
-    );
-
-    $this->ensureReceiptBelongsToTenant(
-        goodsReceipt: $goodsReceipt,
-        tenantId: $tenantId,
-    );
-
-    DB::transaction(
-        function () use (
-            $goodsReceipt,
-            $actor,
-        ): void {
-            $lockedReceipt =
-                GoodsReceipt::query()
-                    ->whereKey(
-                        $goodsReceipt->getKey(),
-                    )
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-            $this->authorizeReceiptBranch(
-                goodsReceipt: $lockedReceipt,
-                actor: $actor,
-                requireActive: false,
-            );
-
-            $this->ensureDeletable(
-                $lockedReceipt,
-            );
-
-            $lines =
-                GoodsReceiptLine::query()
-                    ->where(
-                        'goods_receipt_id',
-                        $lockedReceipt->getKey(),
-                    )
-                    ->orderBy('line_number')
-                    ->lockForUpdate()
-                    ->get();
-
-            /*
-             * Delete draft lines through Eloquent so their
-             * Auditable deletion events are recorded before
-             * deleting the Goods Receipt header.
-             */
-            foreach ($lines as $line) {
-                $line->delete();
-            }
-
-            $lockedReceipt->delete();
-        },
-        attempts: 5,
-    );
-}
-private function authorizeReceiptBranch(
-    GoodsReceipt $goodsReceipt,
-    User $actor,
-    bool $requireActive,
-): void {
-    $branch = Branch::query()
-        ->whereKey(
-            $goodsReceipt->branch_id,
-        )
-        ->lockForUpdate()
-        ->firstOrFail();
-
-    $this->branchAccessService
-        ->authorizeBranch(
-            user: $actor,
-            branch: $branch,
-            requireActive: $requireActive,
+        $this->ensureActorBelongsToTenant(
+            actor: $actor,
+            tenantId: $tenantId,
         );
-}
 
-private function ensureDeletable(
-    GoodsReceipt $goodsReceipt,
-): void {
-    if (!$goodsReceipt->canBeDeleted()) {
-        throw ValidationException::withMessages([
-            'status' => [
-                'Only unnumbered draft Goods Receipts can be deleted.',
-            ],
-        ]);
+        $this->ensureReceiptBelongsToTenant(
+            goodsReceipt: $goodsReceipt,
+            tenantId: $tenantId,
+        );
+
+        DB::transaction(
+            function () use (
+                $goodsReceipt,
+                $actor,
+            ): void {
+                $lockedReceipt =
+                    GoodsReceipt::query()
+                        ->whereKey(
+                            $goodsReceipt->getKey(),
+                        )
+                        ->lockForUpdate()
+                        ->firstOrFail();
+
+                $this->authorizeReceiptBranch(
+                    goodsReceipt: $lockedReceipt,
+                    actor: $actor,
+                    requireActive: false,
+                );
+
+                $this->ensureDeletable(
+                    $lockedReceipt,
+                );
+
+                $lines =
+                    GoodsReceiptLine::query()
+                        ->where(
+                            'goods_receipt_id',
+                            $lockedReceipt->getKey(),
+                        )
+                        ->orderBy('line_number')
+                        ->lockForUpdate()
+                        ->get();
+
+                /*
+                 * Delete draft lines through Eloquent so their
+                 * Auditable deletion events are recorded before
+                 * deleting the Goods Receipt header.
+                 */
+                foreach ($lines as $line) {
+                    $line->delete();
+                }
+
+                $lockedReceipt->delete();
+            },
+            attempts: 5,
+        );
+    }
+    private function authorizeReceiptBranch(
+        GoodsReceipt $goodsReceipt,
+        User $actor,
+        bool $requireActive,
+    ): void {
+        $branch = Branch::query()
+            ->whereKey(
+                $goodsReceipt->branch_id,
+            )
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $this->branchAccessService
+            ->authorizeBranch(
+                user: $actor,
+                branch: $branch,
+                requireActive: $requireActive,
+            );
     }
 
-    if (
-        $goodsReceipt
-            ->stockLedgerEntries()
-            ->exists()
-    ) {
-        throw ValidationException::withMessages([
-            'goods_receipt' => [
-                'The Goods Receipt cannot be deleted because stock-ledger entries already exist.',
-            ],
-        ]);
+    private function ensureDeletable(
+        GoodsReceipt $goodsReceipt,
+    ): void {
+        if (!$goodsReceipt->canBeDeleted()) {
+            throw ValidationException::withMessages([
+                'status' => [
+                    'Only unnumbered draft Goods Receipts can be deleted.',
+                ],
+            ]);
+        }
+
+        if (
+            $goodsReceipt
+                ->stockLedgerEntries()
+                ->exists()
+        ) {
+            throw ValidationException::withMessages([
+                'goods_receipt' => [
+                    'The Goods Receipt cannot be deleted because stock-ledger entries already exist.',
+                ],
+            ]);
+        }
     }
-}
 }

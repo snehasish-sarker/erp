@@ -11,6 +11,7 @@ use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptLine;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnLine;
+use App\Models\SupplierDebitNote;
 use App\Models\SupplierInvoice;
 use App\Models\SupplierInvoiceMatch;
 use App\Models\Tenant;
@@ -30,7 +31,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
-use App\Models\SupplierDebitNote;
 
 final class PurchaseReturnService
 {
@@ -537,37 +537,6 @@ final class PurchaseReturnService
                     nextStatus:
                         'submitted',
                 );
-
-                $activeSupplierDebitNote =
-    SupplierDebitNote::query()
-        ->where(
-            'purchase_return_id',
-            $lockedReturn
-                ->getKey(),
-        )
-        ->whereIn(
-            'status',
-            [
-                'draft',
-                'submitted',
-                'approved',
-                'posted',
-            ],
-        )
-        ->orderBy('id')
-        ->lockForUpdate()
-        ->first();
-
-if (
-    $activeSupplierDebitNote
-    instanceof SupplierDebitNote
-) {
-    throw ValidationException::withMessages([
-        'purchase_return' => [
-            'The Purchase Return cannot be reversed while an active Supplier Debit Note references it. Cancel, delete, or reverse the Supplier Debit Note first.',
-        ],
-    ]);
-}
 
                 $this->validateCurrentAvailability(
                     $lockedReturn,
@@ -1237,6 +1206,37 @@ if (
                     nextStatus:
                         'reversed',
                 );
+
+                $activeSupplierDebitNote =
+                    SupplierDebitNote::query()
+                        ->where(
+                            'purchase_return_id',
+                            $lockedReturn
+                                ->getKey(),
+                        )
+                        ->whereIn(
+                            'status',
+                            [
+                                'draft',
+                                'submitted',
+                                'approved',
+                                'posted',
+                            ],
+                        )
+                        ->orderBy('id')
+                        ->lockForUpdate()
+                        ->first();
+
+                if (
+                    $activeSupplierDebitNote
+                    instanceof SupplierDebitNote
+                ) {
+                    throw ValidationException::withMessages([
+                        'purchase_return' => [
+                            'The Purchase Return cannot be reversed while an active Supplier Debit Note references it. Cancel, delete, or reverse the Supplier Debit Note first.',
+                        ],
+                    ]);
+                }
 
                 if (
                     $normalizedReversalDate

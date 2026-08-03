@@ -1863,17 +1863,17 @@ final class PurchaseOrderController extends Controller
     }
 
     /**
- * @return array{
- *     view: bool,
- *     update: bool,
- *     delete: bool,
- *     submit: bool,
- *     return_to_draft: bool,
- *     approve: bool,
- *     cancel: bool,
- *     receive_goods: bool
- * }
- */
+     * @return array{
+     *     view: bool,
+     *     update: bool,
+     *     delete: bool,
+     *     submit: bool,
+     *     return_to_draft: bool,
+     *     approve: bool,
+     *     cancel: bool,
+     *     receive_goods: bool
+     * }
+     */
     private function actionPermissions(
         User $actor,
         PurchaseOrder $purchaseOrder,
@@ -1915,11 +1915,11 @@ final class PurchaseOrderController extends Controller
                 $purchaseOrder,
             ),
 
-             'receive_goods' =>
-            $purchaseOrder->isReceivable()
-            && $actor->can(
-                'goods_receipts.create',
-            ),
+            'receive_goods' =>
+                $purchaseOrder->isReceivable()
+                && $actor->can(
+                    'goods_receipts.create',
+                ),
         ];
     }
 

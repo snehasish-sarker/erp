@@ -120,15 +120,25 @@ final class PermissionSeeder extends Seeder
         'supplier_invoices.post',
         'supplier_invoices.reverse',
 
-'purchase_returns.view',
-'purchase_returns.create',
-'purchase_returns.update',
-'purchase_returns.delete',
-'purchase_returns.submit',
-'purchase_returns.approve',
-'purchase_returns.cancel',
-'purchase_returns.post',
-'purchase_returns.reverse',
+        'purchase_returns.view',
+        'purchase_returns.create',
+        'purchase_returns.update',
+        'purchase_returns.delete',
+        'purchase_returns.submit',
+        'purchase_returns.approve',
+        'purchase_returns.cancel',
+        'purchase_returns.post',
+        'purchase_returns.reverse',
+
+        'supplier_debit_notes.view',
+        'supplier_debit_notes.create',
+        'supplier_debit_notes.update',
+        'supplier_debit_notes.delete',
+        'supplier_debit_notes.submit',
+        'supplier_debit_notes.approve',
+        'supplier_debit_notes.cancel',
+        'supplier_debit_notes.post',
+        'supplier_debit_notes.reverse',
 
         'sales_orders.view',
         'sales_orders.create',
@@ -217,7 +227,6 @@ final class PermissionSeeder extends Seeder
         'exports.create',
         'exports.download',
         'exports.cancel',
-
     ];
 
     public function run(): void
@@ -364,6 +373,14 @@ final class PermissionSeeder extends Seeder
                 'purchase_returns.create',
                 'purchase_returns.approve',
 
+                'supplier_debit_notes.view',
+                'supplier_debit_notes.create',
+                'supplier_debit_notes.update',
+                'supplier_debit_notes.delete',
+                'supplier_debit_notes.submit',
+                'supplier_debit_notes.approve',
+                'supplier_debit_notes.cancel',
+
                 'inventory.view',
                 'inventory.view_ledger',
                 'inventory.view_cost',
@@ -402,6 +419,8 @@ final class PermissionSeeder extends Seeder
                 'purchase_returns.view',
                 'purchase_returns.create',
                 'purchase_returns.post',
+
+                'supplier_debit_notes.view',
 
                 'sales_orders.view',
                 'sales_orders.allocate',
@@ -497,6 +516,13 @@ final class PermissionSeeder extends Seeder
                 'supplier_invoices.post',
                 'supplier_invoices.reverse',
 
+                'supplier_debit_notes.view',
+                'supplier_debit_notes.create',
+                'supplier_debit_notes.update',
+                'supplier_debit_notes.submit',
+                'supplier_debit_notes.post',
+                'supplier_debit_notes.reverse',
+
                 'sales_invoices.view',
                 'sales_invoices.create',
                 'sales_invoices.post',
@@ -577,6 +603,7 @@ final class PermissionSeeder extends Seeder
                 'goods_receipts.view',
                 'supplier_invoices.view',
                 'purchase_returns.view',
+                'supplier_debit_notes.view',
 
                 'sales_orders.view',
                 'dispatches.view',

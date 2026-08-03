@@ -2326,60 +2326,60 @@ final class PurchaseReturnController extends Controller
     }
 
     /**
- * @return array{
- *     id: int,
- *     debit_note_number: string|null,
- *     status: string
- * }|null
- */
-private function supplierDebitNoteReference(
-    PurchaseReturn $purchaseReturn,
-): ?array {
-    $supplierDebitNote =
-        $purchaseReturn
-            ->supplierDebitNote;
+     * @return array{
+     *     id: int,
+     *     debit_note_number: string|null,
+     *     status: string
+     * }|null
+     */
+    private function supplierDebitNoteReference(
+        PurchaseReturn $purchaseReturn,
+    ): ?array {
+        $supplierDebitNote =
+            $purchaseReturn
+                ->supplierDebitNote;
 
-    if (
-        !$supplierDebitNote
-        instanceof SupplierDebitNote
-    ) {
-        return null;
+        if (
+            !$supplierDebitNote
+            instanceof SupplierDebitNote
+        ) {
+            return null;
+        }
+
+        return [
+            'id' =>
+                (int) $supplierDebitNote
+                    ->getKey(),
+
+            'debit_note_number' =>
+                $supplierDebitNote
+                    ->debit_note_number,
+
+            'status' =>
+                $supplierDebitNote
+                    ->status,
+        ];
     }
 
-    return [
-        'id' =>
-            (int) $supplierDebitNote
-                ->getKey(),
+    private function canCreateSupplierDebitNote(
+        User $actor,
+        PurchaseReturn $purchaseReturn,
+    ): bool {
+        if (
+            !$actor->can(
+                'create',
+                SupplierDebitNote::class,
+            )
+        ) {
+            return false;
+        }
 
-        'debit_note_number' =>
-            $supplierDebitNote
-                ->debit_note_number,
+        if (!$purchaseReturn->isPosted()) {
+            return false;
+        }
 
-        'status' =>
-            $supplierDebitNote
-                ->status,
-    ];
-}
-
-private function canCreateSupplierDebitNote(
-    User $actor,
-    PurchaseReturn $purchaseReturn,
-): bool {
-    if (
-        !$actor->can(
-            'create',
-            SupplierDebitNote::class,
-        )
-    ) {
-        return false;
+        return $purchaseReturn
+            ->supplierDebitNote
+            === null;
     }
-
-    if (!$purchaseReturn->isPosted()) {
-        return false;
-    }
-
-    return $purchaseReturn
-        ->supplierDebitNote
-        === null;
-}
 }

@@ -1668,14 +1668,14 @@ final class GoodsReceiptController extends Controller
     }
 
     /**
- * @return array{
- *     view: bool,
- *     update: bool,
- *     delete: bool,
- *     post: bool,
- *     reverse: bool
- * }
- */
+     * @return array{
+     *     view: bool,
+     *     update: bool,
+     *     delete: bool,
+     *     post: bool,
+     *     reverse: bool
+     * }
+     */
     private function actionPermissions(
         User $actor,
         GoodsReceipt $goodsReceipt,
@@ -1770,84 +1770,84 @@ final class GoodsReceiptController extends Controller
     }
 
     public function destroy(
-    Request $request,
-    GoodsReceipt $goodsReceipt,
-): JsonResponse|RedirectResponse {
-    Gate::authorize(
-        'delete',
-        $goodsReceipt,
-    );
-
-    $actor = $this->actor($request);
-
-    $this->goodsReceiptService
-        ->delete(
-            goodsReceipt: $goodsReceipt,
-            actor: $actor,
+        Request $request,
+        GoodsReceipt $goodsReceipt,
+    ): JsonResponse|RedirectResponse {
+        Gate::authorize(
+            'delete',
+            $goodsReceipt,
         );
 
-    return $this->responseService
-        ->success(
-            message:
-                'Goods Receipt deleted successfully.',
-            redirectTo: route(
-                'goods-receipts.index',
-            ),
-        );
-}
+        $actor = $this->actor($request);
 
-private function canCreateSupplierInvoice(
-    User $actor,
-    GoodsReceipt $goodsReceipt,
-): bool {
-    if (
-        !$actor->can(
-            'supplier_invoices.create',
-        )
-    ) {
-        return false;
+        $this->goodsReceiptService
+            ->delete(
+                goodsReceipt: $goodsReceipt,
+                actor: $actor,
+            );
+
+        return $this->responseService
+            ->success(
+                message:
+                    'Goods Receipt deleted successfully.',
+                redirectTo: route(
+                    'goods-receipts.index',
+                ),
+            );
     }
 
-    if (!$goodsReceipt->isPosted()) {
-        return false;
+    private function canCreateSupplierInvoice(
+        User $actor,
+        GoodsReceipt $goodsReceipt,
+    ): bool {
+        if (
+            !$actor->can(
+                'supplier_invoices.create',
+            )
+        ) {
+            return false;
+        }
+
+        if (!$goodsReceipt->isPosted()) {
+            return false;
+        }
+
+        return $goodsReceipt
+            ->lines()
+            ->whereColumn(
+                'goods_receipt_lines.accepted_quantity',
+                '>',
+                'goods_receipt_lines.invoiced_quantity',
+            )
+            ->exists();
     }
 
-    return $goodsReceipt
-        ->lines()
-        ->whereColumn(
-            'goods_receipt_lines.accepted_quantity',
-            '>',
-            'goods_receipt_lines.invoiced_quantity',
-        )
-        ->exists();
-}
+    private function canCreatePurchaseReturn(
+        User $actor,
+        GoodsReceipt $goodsReceipt,
+    ): bool {
+        if (
+            !$actor->can(
+                'purchase_returns.create',
+            )
+        ) {
+            return false;
+        }
 
-private function canCreatePurchaseReturn(
-    User $actor,
-    GoodsReceipt $goodsReceipt,
-): bool {
-    if (
-        !$actor->can(
-            'purchase_returns.create',
-        )
-    ) {
-        return false;
+        if (!$goodsReceipt->isPosted()) {
+            return false;
+        }
+
+        return $goodsReceipt
+            ->lines()
+            ->where(
+                'product_type',
+                '!=',
+                'service',
+            )
+            ->whereRaw(
+                'goods_receipt_lines.accepted_quantity > goods_receipt_lines.returned_quantity + goods_receipt_lines.return_reserved_quantity',
+            )
+            ->exists();
     }
-
-    if (!$goodsReceipt->isPosted()) {
-        return false;
-    }
-
-    return $goodsReceipt
-        ->lines()
-        ->where(
-            'product_type',
-            '!=',
-            'service',
-        )
-        ->whereRaw(
-            'goods_receipt_lines.accepted_quantity > goods_receipt_lines.returned_quantity + goods_receipt_lines.return_reserved_quantity',
-        )
-        ->exists();
-}
 }

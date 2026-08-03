@@ -23,6 +23,7 @@ use App\Http\Controllers\Organisation\WarehouseController;
 use App\Http\Controllers\Purchasing\GoodsReceiptController;
 use App\Http\Controllers\Purchasing\PurchaseOrderController;
 use App\Http\Controllers\Purchasing\PurchaseReturnController;
+use App\Http\Controllers\Purchasing\SupplierDebitNoteController;
 use App\Http\Controllers\Purchasing\SupplierInvoiceController;
 use App\Http\Controllers\Settings\CompanySettingsController;
 use App\Http\Controllers\Settings\DocumentSequenceController;
@@ -30,7 +31,6 @@ use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
-use App\Http\Controllers\Purchasing\SupplierDebitNoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -1079,378 +1079,378 @@ Route::middleware([
                 ->name('reverse');
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | Supplier Invoices
-        |--------------------------------------------------------------------------
-        */
+    /*
+    |--------------------------------------------------------------------------
+    | Supplier Invoices
+    |--------------------------------------------------------------------------
+    */
 
-        Route::prefix('supplier-invoices')
-            ->name('supplier-invoices.')
-            ->controller(
-                SupplierInvoiceController::class,
+    Route::prefix('supplier-invoices')
+        ->name('supplier-invoices.')
+        ->controller(
+            SupplierInvoiceController::class,
+        )
+        ->group(function (): void {
+            Route::get('/', 'index')
+                ->middleware(
+                    'permission:supplier_invoices.view',
+                )
+                ->name('index');
+
+            Route::get('/create', 'create')
+                ->middleware(
+                    'permission:supplier_invoices.create',
+                )
+                ->name('create');
+
+            Route::post('/', 'store')
+                ->middleware(
+                    'permission:supplier_invoices.create',
+                )
+                ->name('store');
+
+            Route::get(
+                '/{supplierInvoice}',
+                'show',
             )
-            ->group(function (): void {
-                Route::get('/', 'index')
-                    ->middleware(
-                        'permission:supplier_invoices.view',
-                    )
-                    ->name('index');
-
-                Route::get('/create', 'create')
-                    ->middleware(
-                        'permission:supplier_invoices.create',
-                    )
-                    ->name('create');
-
-                Route::post('/', 'store')
-                    ->middleware(
-                        'permission:supplier_invoices.create',
-                    )
-                    ->name('store');
-
-                Route::get(
-                    '/{supplierInvoice}',
-                    'show',
+                ->middleware(
+                    'permission:supplier_invoices.view',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.view',
-                    )
-                    ->name('show');
+                ->name('show');
 
-                Route::get(
-                    '/{supplierInvoice}/edit',
-                    'edit',
+            Route::get(
+                '/{supplierInvoice}/edit',
+                'edit',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.update',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.update',
-                    )
-                    ->name('edit');
+                ->name('edit');
 
-                Route::put(
-                    '/{supplierInvoice}',
-                    'update',
+            Route::put(
+                '/{supplierInvoice}',
+                'update',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.update',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.update',
-                    )
-                    ->name('update');
+                ->name('update');
 
-                Route::delete(
-                    '/{supplierInvoice}',
-                    'destroy',
+            Route::delete(
+                '/{supplierInvoice}',
+                'destroy',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.delete',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.delete',
-                    )
-                    ->name('destroy');
+                ->name('destroy');
 
-                Route::post(
-                    '/{supplierInvoice}/validate',
-                    'validateInvoice',
+            Route::post(
+                '/{supplierInvoice}/validate',
+                'validateInvoice',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.validate',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.validate',
-                    )
-                    ->name('validate');
+                ->name('validate');
 
-                Route::post(
-                    '/{supplierInvoice}/return-to-draft',
-                    'returnToDraft',
+            Route::post(
+                '/{supplierInvoice}/return-to-draft',
+                'returnToDraft',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.validate',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.validate',
-                    )
-                    ->name('return-to-draft');
+                ->name('return-to-draft');
 
-                Route::post(
-                    '/{supplierInvoice}/approve',
-                    'approve',
+            Route::post(
+                '/{supplierInvoice}/approve',
+                'approve',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.approve',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.approve',
-                    )
-                    ->name('approve');
+                ->name('approve');
 
-                Route::post(
-                    '/{supplierInvoice}/dispute',
-                    'dispute',
+            Route::post(
+                '/{supplierInvoice}/dispute',
+                'dispute',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.dispute',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.dispute',
-                    )
-                    ->name('dispute');
+                ->name('dispute');
 
-                Route::post(
-                    '/{supplierInvoice}/cancel',
-                    'cancel',
+            Route::post(
+                '/{supplierInvoice}/cancel',
+                'cancel',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.cancel',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.cancel',
-                    )
-                    ->name('cancel');
+                ->name('cancel');
 
-                Route::post(
-                    '/{supplierInvoice}/post',
-                    'post',
+            Route::post(
+                '/{supplierInvoice}/post',
+                'post',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.post',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.post',
-                    )
-                    ->name('post');
+                ->name('post');
 
-                Route::post(
-                    '/{supplierInvoice}/reverse',
-                    'reverse',
+            Route::post(
+                '/{supplierInvoice}/reverse',
+                'reverse',
+            )
+                ->middleware(
+                    'permission:supplier_invoices.reverse',
                 )
-                    ->middleware(
-                        'permission:supplier_invoices.reverse',
-                    )
-                    ->name('reverse');
-            });
+                ->name('reverse');
         });
 
-        /*
-|--------------------------------------------------------------------------
-| Purchase Returns
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Purchase Returns
+    |--------------------------------------------------------------------------
+    */
 
-Route::prefix('purchase-returns')
-    ->name('purchase-returns.')
-    ->controller(
-        PurchaseReturnController::class,
-    )
-    ->group(function (): void {
-        Route::get('/', 'index')
-            ->middleware(
-                'permission:purchase_returns.view',
-            )
-            ->name('index');
-
-        Route::get('/create', 'create')
-            ->middleware(
-                'permission:purchase_returns.create',
-            )
-            ->name('create');
-
-        Route::post('/', 'store')
-            ->middleware(
-                'permission:purchase_returns.create',
-            )
-            ->name('store');
-
-        Route::get(
-            '/{purchaseReturn}',
-            'show',
+    Route::prefix('purchase-returns')
+        ->name('purchase-returns.')
+        ->controller(
+            PurchaseReturnController::class,
         )
-            ->middleware(
-                'permission:purchase_returns.view',
-            )
-            ->name('show');
+        ->group(function (): void {
+            Route::get('/', 'index')
+                ->middleware(
+                    'permission:purchase_returns.view',
+                )
+                ->name('index');
 
-        Route::get(
-            '/{purchaseReturn}/edit',
-            'edit',
+            Route::get('/create', 'create')
+                ->middleware(
+                    'permission:purchase_returns.create',
+                )
+                ->name('create');
+
+            Route::post('/', 'store')
+                ->middleware(
+                    'permission:purchase_returns.create',
+                )
+                ->name('store');
+
+            Route::get(
+                '/{purchaseReturn}',
+                'show',
+            )
+                ->middleware(
+                    'permission:purchase_returns.view',
+                )
+                ->name('show');
+
+            Route::get(
+                '/{purchaseReturn}/edit',
+                'edit',
+            )
+                ->middleware(
+                    'permission:purchase_returns.update',
+                )
+                ->name('edit');
+
+            Route::put(
+                '/{purchaseReturn}',
+                'update',
+            )
+                ->middleware(
+                    'permission:purchase_returns.update',
+                )
+                ->name('update');
+
+            Route::delete(
+                '/{purchaseReturn}',
+                'destroy',
+            )
+                ->middleware(
+                    'permission:purchase_returns.delete',
+                )
+                ->name('destroy');
+
+            Route::post(
+                '/{purchaseReturn}/submit',
+                'submit',
+            )
+                ->middleware(
+                    'permission:purchase_returns.submit',
+                )
+                ->name('submit');
+
+            Route::post(
+                '/{purchaseReturn}/return-to-draft',
+                'returnToDraft',
+            )
+                ->middleware(
+                    'permission:purchase_returns.submit',
+                )
+                ->name('return-to-draft');
+
+            Route::post(
+                '/{purchaseReturn}/approve',
+                'approve',
+            )
+                ->middleware(
+                    'permission:purchase_returns.approve',
+                )
+                ->name('approve');
+
+            Route::post(
+                '/{purchaseReturn}/cancel',
+                'cancel',
+            )
+                ->middleware(
+                    'permission:purchase_returns.cancel',
+                )
+                ->name('cancel');
+
+            Route::post(
+                '/{purchaseReturn}/post',
+                'post',
+            )
+                ->middleware(
+                    'permission:purchase_returns.post',
+                )
+                ->name('post');
+
+            Route::post(
+                '/{purchaseReturn}/reverse',
+                'reverse',
+            )
+                ->middleware(
+                    'permission:purchase_returns.reverse',
+                )
+                ->name('reverse');
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Supplier Debit Notes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('supplier-debit-notes')
+        ->name('supplier-debit-notes.')
+        ->controller(
+            SupplierDebitNoteController::class,
         )
-            ->middleware(
-                'permission:purchase_returns.update',
-            )
-            ->name('edit');
+        ->group(function (): void {
+            Route::get('/', 'index')
+                ->middleware(
+                    'permission:supplier_debit_notes.view',
+                )
+                ->name('index');
 
-        Route::put(
-            '/{purchaseReturn}',
-            'update',
-        )
-            ->middleware(
-                'permission:purchase_returns.update',
-            )
-            ->name('update');
+            Route::get('/create', 'create')
+                ->middleware(
+                    'permission:supplier_debit_notes.create',
+                )
+                ->name('create');
 
-        Route::delete(
-            '/{purchaseReturn}',
-            'destroy',
-        )
-            ->middleware(
-                'permission:purchase_returns.delete',
-            )
-            ->name('destroy');
+            Route::post('/', 'store')
+                ->middleware(
+                    'permission:supplier_debit_notes.create',
+                )
+                ->name('store');
 
-        Route::post(
-            '/{purchaseReturn}/submit',
-            'submit',
-        )
-            ->middleware(
-                'permission:purchase_returns.submit',
+            Route::get(
+                '/{supplierDebitNote}',
+                'show',
             )
-            ->name('submit');
+                ->middleware(
+                    'permission:supplier_debit_notes.view',
+                )
+                ->name('show');
 
-        Route::post(
-            '/{purchaseReturn}/return-to-draft',
-            'returnToDraft',
-        )
-            ->middleware(
-                'permission:purchase_returns.submit',
+            Route::get(
+                '/{supplierDebitNote}/edit',
+                'edit',
             )
-            ->name('return-to-draft');
+                ->middleware(
+                    'permission:supplier_debit_notes.update',
+                )
+                ->name('edit');
 
-        Route::post(
-            '/{purchaseReturn}/approve',
-            'approve',
-        )
-            ->middleware(
-                'permission:purchase_returns.approve',
+            Route::put(
+                '/{supplierDebitNote}',
+                'update',
             )
-            ->name('approve');
+                ->middleware(
+                    'permission:supplier_debit_notes.update',
+                )
+                ->name('update');
 
-        Route::post(
-            '/{purchaseReturn}/cancel',
-            'cancel',
-        )
-            ->middleware(
-                'permission:purchase_returns.cancel',
+            Route::delete(
+                '/{supplierDebitNote}',
+                'destroy',
             )
-            ->name('cancel');
+                ->middleware(
+                    'permission:supplier_debit_notes.delete',
+                )
+                ->name('destroy');
 
-        Route::post(
-            '/{purchaseReturn}/post',
-            'post',
-        )
-            ->middleware(
-                'permission:purchase_returns.post',
+            Route::post(
+                '/{supplierDebitNote}/submit',
+                'submit',
             )
-            ->name('post');
+                ->middleware(
+                    'permission:supplier_debit_notes.submit',
+                )
+                ->name('submit');
 
-        Route::post(
-            '/{purchaseReturn}/reverse',
-            'reverse',
-        )
-            ->middleware(
-                'permission:purchase_returns.reverse',
+            Route::post(
+                '/{supplierDebitNote}/return-to-draft',
+                'returnToDraft',
             )
-            ->name('reverse');
+                ->middleware(
+                    'permission:supplier_debit_notes.submit',
+                )
+                ->name('return-to-draft');
 
-            /*
-|--------------------------------------------------------------------------
-| Supplier Debit Notes
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('supplier-debit-notes')
-    ->name('supplier-debit-notes.')
-    ->controller(
-        SupplierDebitNoteController::class,
-    )
-    ->group(function (): void {
-        Route::get('/', 'index')
-            ->middleware(
-                'permission:supplier_debit_notes.view',
+            Route::post(
+                '/{supplierDebitNote}/approve',
+                'approve',
             )
-            ->name('index');
+                ->middleware(
+                    'permission:supplier_debit_notes.approve',
+                )
+                ->name('approve');
 
-        Route::get('/create', 'create')
-            ->middleware(
-                'permission:supplier_debit_notes.create',
+            Route::post(
+                '/{supplierDebitNote}/cancel',
+                'cancel',
             )
-            ->name('create');
+                ->middleware(
+                    'permission:supplier_debit_notes.cancel',
+                )
+                ->name('cancel');
 
-        Route::post('/', 'store')
-            ->middleware(
-                'permission:supplier_debit_notes.create',
+            Route::post(
+                '/{supplierDebitNote}/post',
+                'post',
             )
-            ->name('store');
+                ->middleware(
+                    'permission:supplier_debit_notes.post',
+                )
+                ->name('post');
 
-        Route::get(
-            '/{supplierDebitNote}',
-            'show',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.view',
+            Route::post(
+                '/{supplierDebitNote}/reverse',
+                'reverse',
             )
-            ->name('show');
-
-        Route::get(
-            '/{supplierDebitNote}/edit',
-            'edit',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.update',
-            )
-            ->name('edit');
-
-        Route::put(
-            '/{supplierDebitNote}',
-            'update',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.update',
-            )
-            ->name('update');
-
-        Route::delete(
-            '/{supplierDebitNote}',
-            'destroy',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.delete',
-            )
-            ->name('destroy');
-
-        Route::post(
-            '/{supplierDebitNote}/submit',
-            'submit',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.submit',
-            )
-            ->name('submit');
-
-        Route::post(
-            '/{supplierDebitNote}/return-to-draft',
-            'returnToDraft',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.submit',
-            )
-            ->name('return-to-draft');
-
-        Route::post(
-            '/{supplierDebitNote}/approve',
-            'approve',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.approve',
-            )
-            ->name('approve');
-
-        Route::post(
-            '/{supplierDebitNote}/cancel',
-            'cancel',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.cancel',
-            )
-            ->name('cancel');
-
-        Route::post(
-            '/{supplierDebitNote}/post',
-            'post',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.post',
-            )
-            ->name('post');
-
-        Route::post(
-            '/{supplierDebitNote}/reverse',
-            'reverse',
-        )
-            ->middleware(
-                'permission:supplier_debit_notes.reverse',
-            )
-            ->name('reverse');
-    });
-    });
+                ->middleware(
+                    'permission:supplier_debit_notes.reverse',
+                )
+                ->name('reverse');
+        });
+});
 
 /*
 |--------------------------------------------------------------------------

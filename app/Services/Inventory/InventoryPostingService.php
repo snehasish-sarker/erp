@@ -766,738 +766,101 @@ final class InventoryPostingService
     }
 
     public function postPurchaseReturnLine(
-    PurchaseReturn $purchaseReturn,
-    PurchaseReturnLine $line,
-    User $actor,
-    CarbonInterface $occurredAt,
-): ?StockLedgerEntry {
-    if (
-        !$line->isStockItem()
-        || !$line->hasReturnQuantity()
-    ) {
-        return null;
-    }
+        PurchaseReturn $purchaseReturn,
+        PurchaseReturnLine $line,
+        User $actor,
+        CarbonInterface $occurredAt,
+    ): ?StockLedgerEntry {
+        if (
+            !$line->isStockItem()
+            || !$line->hasReturnQuantity()
+        ) {
+            return null;
+        }
 
-    $tenantId = $this->activeTenantId();
+        $tenantId = $this->activeTenantId();
 
-    $this->ensurePurchaseReturnTenant(
-        purchaseReturn:
-            $purchaseReturn,
-
-        line:
-            $line,
-
-        actor:
-            $actor,
-
-        tenantId:
-            $tenantId,
-    );
-
-    if (
-        $purchaseReturn
-            ->warehouse_id
-        === null
-    ) {
-        throw ValidationException::withMessages([
-            'warehouse_id' => [
-                'A warehouse is required to post a stock Purchase Return.',
-            ],
-        ]);
-    }
-
-    $postingKey = sprintf(
-        'purchase-return:%d:line:%d:post',
-        (int) $purchaseReturn->getKey(),
-        (int) $line->getKey(),
-    );
-
-    $existingEntry =
-        StockLedgerEntry::query()
-            ->where(
-                'posting_key',
-                $postingKey,
-            )
-            ->first();
-
-    if (
-        $existingEntry
-        instanceof StockLedgerEntry
-    ) {
-        return $existingEntry;
-    }
-
-    $balance = $this->lockBalance(
-        tenantId:
-            $tenantId,
-
-        branchId:
-            (int) $purchaseReturn
-                ->branch_id,
-
-        warehouseId:
-            (int) $purchaseReturn
-                ->warehouse_id,
-
-        productId:
-            (int) $line
-                ->product_id,
-
-        unitId:
-            (int) $line
-                ->unit_id,
-    );
-
-    $this
-        ->ensureBalanceMatchesPurchaseReturnLocation(
+        $this->ensurePurchaseReturnTenant(
             purchaseReturn:
                 $purchaseReturn,
 
             line:
                 $line,
 
-            balance:
-                $balance,
+            actor:
+                $actor,
+
+            tenantId:
+                $tenantId,
         );
 
-    $quantity = BigDecimal::of(
-        (string) $line
-            ->return_quantity,
-    )->toScale(
-        self::SCALE,
-        RoundingMode::UNNECESSARY,
-    );
+        if (
+            $purchaseReturn
+                ->warehouse_id
+            === null
+        ) {
+            throw ValidationException::withMessages([
+                'warehouse_id' => [
+                    'A warehouse is required to post a stock Purchase Return.',
+                ],
+            ]);
+        }
 
-    $currentQuantity =
-        BigDecimal::of(
-            (string) $balance
-                ->quantity_on_hand,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
+        $postingKey = sprintf(
+            'purchase-return:%d:line:%d:post',
+            (int) $purchaseReturn->getKey(),
+            (int) $line->getKey(),
         );
 
-    $currentValue =
-        BigDecimal::of(
-            (string) $balance
-                ->inventory_value,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
-        );
-
-    if (
-        $currentQuantity
-            ->isLessThan(
-                $quantity,
-            )
-    ) {
-        throw ValidationException::withMessages([
-            'lines' => [
-                "Purchase Return {$purchaseReturn->return_number} cannot be posted because {$line->product_name} does not have enough stock in the source warehouse.",
-            ],
-        ]);
-    }
-
-    if ($currentQuantity->isZero()) {
-        throw ValidationException::withMessages([
-            'lines' => [
-                "Purchase Return {$purchaseReturn->return_number} cannot be posted because {$line->product_name} has no stock in the source warehouse.",
-            ],
-        ]);
-    }
-
-    /*
-     * When the entire balance is returned, consume the exact
-     * remaining inventory value to avoid a rounding residue.
-     */
-    if (
-        $quantity
-            ->isEqualTo(
-                $currentQuantity,
-            )
-    ) {
-        $outgoingValue =
-            $currentValue;
-
-        $outgoingUnitCost =
-            $outgoingValue
-                ->dividedBy(
-                    $quantity,
-                    self::SCALE,
-                    RoundingMode::HALF_UP,
-                );
-    } else {
-        $outgoingUnitCost =
-            BigDecimal::of(
-                (string) $balance
-                    ->average_unit_cost,
-            )->toScale(
-                self::SCALE,
-                RoundingMode::UNNECESSARY,
-            );
-
-        $outgoingValue =
-            $outgoingUnitCost
-                ->multipliedBy(
-                    $quantity,
+        $existingEntry =
+            StockLedgerEntry::query()
+                ->where(
+                    'posting_key',
+                    $postingKey,
                 )
-                ->toScale(
-                    self::SCALE,
-                    RoundingMode::HALF_UP,
-                );
-    }
+                ->first();
 
-    if (
-        $currentValue
-            ->isLessThan(
-                $outgoingValue,
-            )
-    ) {
-        throw ValidationException::withMessages([
-            'lines' => [
-                "Purchase Return {$purchaseReturn->return_number} cannot be posted because the inventory value for {$line->product_name} is insufficient.",
-            ],
-        ]);
-    }
+        if (
+            $existingEntry
+            instanceof StockLedgerEntry
+        ) {
+            return $existingEntry;
+        }
 
-    $newQuantity =
-        $currentQuantity
-            ->minus(
-                $quantity,
-            )
-            ->toScale(
-                self::SCALE,
-                RoundingMode::HALF_UP,
-            );
+        $balance = $this->lockBalance(
+            tenantId:
+                $tenantId,
 
-    $newValue =
-        $currentValue
-            ->minus(
-                $outgoingValue,
-            )
-            ->toScale(
-                self::SCALE,
-                RoundingMode::HALF_UP,
-            );
-
-    if ($newQuantity->isZero()) {
-        $newValue =
-            BigDecimal::zero()
-                ->toScale(
-                    self::SCALE,
-                );
-    }
-
-    if (
-        $newQuantity->isLessThan(
-            BigDecimal::zero(),
-        )
-        || $newValue->isLessThan(
-            BigDecimal::zero(),
-        )
-    ) {
-        throw ValidationException::withMessages([
-            'lines' => [
-                'The Purchase Return would create a negative inventory balance.',
-            ],
-        ]);
-    }
-
-    $newAverageCost =
-        $newQuantity->isZero()
-            ? BigDecimal::zero()
-                ->toScale(
-                    self::SCALE,
-                )
-            : $newValue
-                ->dividedBy(
-                    $newQuantity,
-                    self::SCALE,
-                    RoundingMode::HALF_UP,
-                );
-
-    $balance->quantity_on_hand =
-        $newQuantity->__toString();
-
-    $balance->inventory_value =
-        $newValue->__toString();
-
-    $balance->average_unit_cost =
-        $newAverageCost->__toString();
-
-    $balance->version =
-        (int) $balance->version + 1;
-
-    $balance->save();
-
-    return StockLedgerEntry::query()
-        ->create([
-            'branch_id' =>
-                $purchaseReturn
+            branchId:
+                (int) $purchaseReturn
                     ->branch_id,
 
-            'warehouse_id' =>
-                $purchaseReturn
+            warehouseId:
+                (int) $purchaseReturn
                     ->warehouse_id,
 
-            'product_id' =>
-                $line->product_id,
+            productId:
+                (int) $line
+                    ->product_id,
 
-            'unit_id' =>
-                $line->unit_id,
-
-            'movement_type' =>
-                'purchase_return',
-
-            'posting_key' =>
-                $postingKey,
-
-            'source_type' =>
-                PurchaseReturn::class,
-
-            'source_id' =>
-                $purchaseReturn
-                    ->getKey(),
-
-            'source_line_id' =>
-                $line->getKey(),
-
-            'document_number' =>
-                $purchaseReturn
-                    ->return_number,
-
-            'occurred_at' =>
-                $occurredAt,
-
-            'quantity_in' =>
-                '0.000000',
-
-            'quantity_out' =>
-                $quantity
-                    ->__toString(),
-
-            'unit_cost' =>
-                $outgoingUnitCost
-                    ->__toString(),
-
-            'total_cost' =>
-                $outgoingValue
-                    ->__toString(),
-
-            'balance_quantity' =>
-                $newQuantity
-                    ->__toString(),
-
-            'balance_value' =>
-                $newValue
-                    ->__toString(),
-
-            'created_by_user_id' =>
-                $actor->getKey(),
-
-            'reversal_of_id' =>
-                null,
-        ]);
-}
-
-public function reversePurchaseReturnLine(
-    PurchaseReturn $purchaseReturn,
-    PurchaseReturnLine $line,
-    User $actor,
-    CarbonInterface $occurredAt,
-): ?StockLedgerEntry {
-    if (
-        !$line->isStockItem()
-        || !$line->hasReturnQuantity()
-    ) {
-        return null;
-    }
-
-    $tenantId = $this->activeTenantId();
-
-    $this->ensurePurchaseReturnTenant(
-        purchaseReturn:
-            $purchaseReturn,
-
-        line:
-            $line,
-
-        actor:
-            $actor,
-
-        tenantId:
-            $tenantId,
-    );
-
-    if (
-        $purchaseReturn
-            ->warehouse_id
-        === null
-    ) {
-        throw new LogicException(
-            'A posted stock Purchase Return must have a warehouse.',
-        );
-    }
-
-    $originalPostingKey = sprintf(
-        'purchase-return:%d:line:%d:post',
-        (int) $purchaseReturn->getKey(),
-        (int) $line->getKey(),
-    );
-
-    $reversalPostingKey = sprintf(
-        'purchase-return:%d:line:%d:reverse',
-        (int) $purchaseReturn->getKey(),
-        (int) $line->getKey(),
-    );
-
-    $originalEntry =
-        StockLedgerEntry::query()
-            ->where(
-                'posting_key',
-                $originalPostingKey,
-            )
-            ->lockForUpdate()
-            ->first();
-
-    if (
-        !$originalEntry
-        instanceof StockLedgerEntry
-    ) {
-        throw new LogicException(
-            'The original Purchase Return stock entry was not found.',
-        );
-    }
-
-    $existingReversal =
-        StockLedgerEntry::query()
-            ->where(
-                'posting_key',
-                $reversalPostingKey,
-            )
-            ->lockForUpdate()
-            ->first();
-
-    if (
-        $existingReversal
-        instanceof StockLedgerEntry
-    ) {
-        return $existingReversal;
-    }
-
-    $this
-        ->ensureOriginalEntryMatchesPurchaseReturn(
-            purchaseReturn:
-                $purchaseReturn,
-
-            line:
-                $line,
-
-            originalEntry:
-                $originalEntry,
+            unitId:
+                (int) $line
+                    ->unit_id,
         );
 
-    $balance =
-        InventoryBalance::query()
-            ->where(
-                'warehouse_id',
-                $purchaseReturn
-                    ->warehouse_id,
-            )
-            ->where(
-                'product_id',
-                $line->product_id,
-            )
-            ->lockForUpdate()
-            ->first();
-
-    if (
-        !$balance
-        instanceof InventoryBalance
-    ) {
-        throw ValidationException::withMessages([
-            'purchase_return' => [
-                'The inventory balance required for Purchase Return reversal was not found.',
-            ],
-        ]);
-    }
-
-    $this
-        ->ensureBalanceMatchesPurchaseReturnLocation(
-            purchaseReturn:
-                $purchaseReturn,
-
-            line:
-                $line,
-
-            balance:
-                $balance,
-        );
-
-    /*
-     * Exact reversal is only safe when no later movement from
-     * another document exists for the same stock location.
-     */
-    $blockingLaterEntry =
-        StockLedgerEntry::query()
-            ->where(
-                'warehouse_id',
-                $purchaseReturn
-                    ->warehouse_id,
-            )
-            ->where(
-                'product_id',
-                $line->product_id,
-            )
-            ->where(
-                'id',
-                '>',
-                $originalEntry
-                    ->getKey(),
-            )
-            ->where(
-                static function (
-                    $query,
-                ) use (
+        $this
+            ->ensureBalanceMatchesPurchaseReturnLocation(
+                purchaseReturn:
                     $purchaseReturn,
-                ): void {
-                    $query
-                        ->where(
-                            'source_type',
-                            '!=',
-                            PurchaseReturn::class,
-                        )
-                        ->orWhere(
-                            'source_id',
-                            '!=',
-                            $purchaseReturn
-                                ->getKey(),
-                        );
-                },
-            )
-            ->orderBy('id')
-            ->lockForUpdate()
-            ->first();
 
-    if (
-        $blockingLaterEntry
-        instanceof StockLedgerEntry
-    ) {
-        throw ValidationException::withMessages([
-            'purchase_return' => [
-                "Purchase Return {$purchaseReturn->return_number} cannot be reversed because a later stock movement exists for {$line->product_name}. Reverse the later movement first.",
-            ],
-        ]);
-    }
+                line:
+                    $line,
 
-    /*
-     * Use the immutable original Purchase Return ledger values.
-     */
-    $quantity = BigDecimal::of(
-        (string) $originalEntry
-            ->quantity_out,
-    )->toScale(
-        self::SCALE,
-        RoundingMode::UNNECESSARY,
-    );
-
-    $originalUnitCost =
-        BigDecimal::of(
-            (string) $originalEntry
-                ->unit_cost,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
-        );
-
-    $originalValue =
-        BigDecimal::of(
-            (string) $originalEntry
-                ->total_cost,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
-        );
-
-    $currentQuantity =
-        BigDecimal::of(
-            (string) $balance
-                ->quantity_on_hand,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
-        );
-
-    $currentValue =
-        BigDecimal::of(
-            (string) $balance
-                ->inventory_value,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
-        );
-
-    $postedBalanceQuantity =
-        BigDecimal::of(
-            (string) $originalEntry
-                ->balance_quantity,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
-        );
-
-    $postedBalanceValue =
-        BigDecimal::of(
-            (string) $originalEntry
-                ->balance_value,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
-        );
-
-    if (
-        !$currentQuantity
-            ->isEqualTo(
-                $postedBalanceQuantity,
-            )
-        || !$currentValue
-            ->isEqualTo(
-                $postedBalanceValue,
-            )
-    ) {
-        throw ValidationException::withMessages([
-            'purchase_return' => [
-                'The Purchase Return cannot be reversed because the inventory balance no longer matches its original posted balance.',
-            ],
-        ]);
-    }
-
-    $newQuantity =
-        $currentQuantity
-            ->plus(
-                $quantity,
-            )
-            ->toScale(
-                self::SCALE,
-                RoundingMode::HALF_UP,
+                balance:
+                    $balance,
             );
 
-    $newValue =
-        $currentValue
-            ->plus(
-                $originalValue,
-            )
-            ->toScale(
-                self::SCALE,
-                RoundingMode::HALF_UP,
-            );
-
-    $newAverageCost =
-        $newQuantity->isZero()
-            ? BigDecimal::zero()
-                ->toScale(
-                    self::SCALE,
-                )
-            : $newValue
-                ->dividedBy(
-                    $newQuantity,
-                    self::SCALE,
-                    RoundingMode::HALF_UP,
-                );
-
-    $balance->quantity_on_hand =
-        $newQuantity->__toString();
-
-    $balance->inventory_value =
-        $newValue->__toString();
-
-    $balance->average_unit_cost =
-        $newAverageCost->__toString();
-
-    $balance->version =
-        (int) $balance->version + 1;
-
-    $balance->save();
-
-    return StockLedgerEntry::query()
-        ->create([
-            'branch_id' =>
-                $purchaseReturn
-                    ->branch_id,
-
-            'warehouse_id' =>
-                $purchaseReturn
-                    ->warehouse_id,
-
-            'product_id' =>
-                $line->product_id,
-
-            'unit_id' =>
-                $line->unit_id,
-
-            'movement_type' =>
-                'purchase_return_reversal',
-
-            'posting_key' =>
-                $reversalPostingKey,
-
-            'source_type' =>
-                PurchaseReturn::class,
-
-            'source_id' =>
-                $purchaseReturn
-                    ->getKey(),
-
-            'source_line_id' =>
-                $line->getKey(),
-
-            'document_number' =>
-                $purchaseReturn
-                    ->return_number,
-
-            'occurred_at' =>
-                $occurredAt,
-
-            'quantity_in' =>
-                $quantity
-                    ->__toString(),
-
-            'quantity_out' =>
-                '0.000000',
-
-            'unit_cost' =>
-                $originalUnitCost
-                    ->__toString(),
-
-            'total_cost' =>
-                $originalValue
-                    ->__toString(),
-
-            'balance_quantity' =>
-                $newQuantity
-                    ->__toString(),
-
-            'balance_value' =>
-                $newValue
-                    ->__toString(),
-
-            'created_by_user_id' =>
-                $actor->getKey(),
-
-            'reversal_of_id' =>
-                $originalEntry
-                    ->getKey(),
-        ]);
-}
-
-private function ensureOriginalEntryMatchesPurchaseReturn(
-    PurchaseReturn $purchaseReturn,
-    PurchaseReturnLine $line,
-    StockLedgerEntry $originalEntry,
-): void {
-    $expectedQuantity =
-        BigDecimal::of(
+        $quantity = BigDecimal::of(
             (string) $line
                 ->return_quantity,
         )->toScale(
@@ -1505,17 +868,433 @@ private function ensureOriginalEntryMatchesPurchaseReturn(
             RoundingMode::UNNECESSARY,
         );
 
-    $postedQuantityIn =
-        BigDecimal::of(
-            (string) $originalEntry
-                ->quantity_in,
-        )->toScale(
-            self::SCALE,
-            RoundingMode::UNNECESSARY,
+        $currentQuantity =
+            BigDecimal::of(
+                (string) $balance
+                    ->quantity_on_hand,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        $currentValue =
+            BigDecimal::of(
+                (string) $balance
+                    ->inventory_value,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        if (
+            $currentQuantity
+                ->isLessThan(
+                    $quantity,
+                )
+        ) {
+            throw ValidationException::withMessages([
+                'lines' => [
+                    "Purchase Return {$purchaseReturn->return_number} cannot be posted because {$line->product_name} does not have enough stock in the source warehouse.",
+                ],
+            ]);
+        }
+
+        if ($currentQuantity->isZero()) {
+            throw ValidationException::withMessages([
+                'lines' => [
+                    "Purchase Return {$purchaseReturn->return_number} cannot be posted because {$line->product_name} has no stock in the source warehouse.",
+                ],
+            ]);
+        }
+
+        /*
+         * When the entire balance is returned, consume the exact
+         * remaining inventory value to avoid a rounding residue.
+         */
+        if (
+            $quantity
+                ->isEqualTo(
+                    $currentQuantity,
+                )
+        ) {
+            $outgoingValue =
+                $currentValue;
+
+            $outgoingUnitCost =
+                $outgoingValue
+                    ->dividedBy(
+                        $quantity,
+                        self::SCALE,
+                        RoundingMode::HALF_UP,
+                    );
+        } else {
+            $outgoingUnitCost =
+                BigDecimal::of(
+                    (string) $balance
+                        ->average_unit_cost,
+                )->toScale(
+                    self::SCALE,
+                    RoundingMode::UNNECESSARY,
+                );
+
+            $outgoingValue =
+                $outgoingUnitCost
+                    ->multipliedBy(
+                        $quantity,
+                    )
+                    ->toScale(
+                        self::SCALE,
+                        RoundingMode::HALF_UP,
+                    );
+        }
+
+        if (
+            $currentValue
+                ->isLessThan(
+                    $outgoingValue,
+                )
+        ) {
+            throw ValidationException::withMessages([
+                'lines' => [
+                    "Purchase Return {$purchaseReturn->return_number} cannot be posted because the inventory value for {$line->product_name} is insufficient.",
+                ],
+            ]);
+        }
+
+        $newQuantity =
+            $currentQuantity
+                ->minus(
+                    $quantity,
+                )
+                ->toScale(
+                    self::SCALE,
+                    RoundingMode::HALF_UP,
+                );
+
+        $newValue =
+            $currentValue
+                ->minus(
+                    $outgoingValue,
+                )
+                ->toScale(
+                    self::SCALE,
+                    RoundingMode::HALF_UP,
+                );
+
+        if ($newQuantity->isZero()) {
+            $newValue =
+                BigDecimal::zero()
+                    ->toScale(
+                        self::SCALE,
+                    );
+        }
+
+        if (
+            $newQuantity->isLessThan(
+                BigDecimal::zero(),
+            )
+            || $newValue->isLessThan(
+                BigDecimal::zero(),
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'lines' => [
+                    'The Purchase Return would create a negative inventory balance.',
+                ],
+            ]);
+        }
+
+        $newAverageCost =
+            $newQuantity->isZero()
+                ? BigDecimal::zero()
+                    ->toScale(
+                        self::SCALE,
+                    )
+                : $newValue
+                    ->dividedBy(
+                        $newQuantity,
+                        self::SCALE,
+                        RoundingMode::HALF_UP,
+                    );
+
+        $balance->quantity_on_hand =
+            $newQuantity->__toString();
+
+        $balance->inventory_value =
+            $newValue->__toString();
+
+        $balance->average_unit_cost =
+            $newAverageCost->__toString();
+
+        $balance->version =
+            (int) $balance->version + 1;
+
+        $balance->save();
+
+        return StockLedgerEntry::query()
+            ->create([
+                'branch_id' =>
+                    $purchaseReturn
+                        ->branch_id,
+
+                'warehouse_id' =>
+                    $purchaseReturn
+                        ->warehouse_id,
+
+                'product_id' =>
+                    $line->product_id,
+
+                'unit_id' =>
+                    $line->unit_id,
+
+                'movement_type' =>
+                    'purchase_return',
+
+                'posting_key' =>
+                    $postingKey,
+
+                'source_type' =>
+                    PurchaseReturn::class,
+
+                'source_id' =>
+                    $purchaseReturn
+                        ->getKey(),
+
+                'source_line_id' =>
+                    $line->getKey(),
+
+                'document_number' =>
+                    $purchaseReturn
+                        ->return_number,
+
+                'occurred_at' =>
+                    $occurredAt,
+
+                'quantity_in' =>
+                    '0.000000',
+
+                'quantity_out' =>
+                    $quantity
+                        ->__toString(),
+
+                'unit_cost' =>
+                    $outgoingUnitCost
+                        ->__toString(),
+
+                'total_cost' =>
+                    $outgoingValue
+                        ->__toString(),
+
+                'balance_quantity' =>
+                    $newQuantity
+                        ->__toString(),
+
+                'balance_value' =>
+                    $newValue
+                        ->__toString(),
+
+                'created_by_user_id' =>
+                    $actor->getKey(),
+
+                'reversal_of_id' =>
+                    null,
+            ]);
+    }
+
+    public function reversePurchaseReturnLine(
+        PurchaseReturn $purchaseReturn,
+        PurchaseReturnLine $line,
+        User $actor,
+        CarbonInterface $occurredAt,
+    ): ?StockLedgerEntry {
+        if (
+            !$line->isStockItem()
+            || !$line->hasReturnQuantity()
+        ) {
+            return null;
+        }
+
+        $tenantId = $this->activeTenantId();
+
+        $this->ensurePurchaseReturnTenant(
+            purchaseReturn:
+                $purchaseReturn,
+
+            line:
+                $line,
+
+            actor:
+                $actor,
+
+            tenantId:
+                $tenantId,
         );
 
-    $postedQuantityOut =
-        BigDecimal::of(
+        if (
+            $purchaseReturn
+                ->warehouse_id
+            === null
+        ) {
+            throw new LogicException(
+                'A posted stock Purchase Return must have a warehouse.',
+            );
+        }
+
+        $originalPostingKey = sprintf(
+            'purchase-return:%d:line:%d:post',
+            (int) $purchaseReturn->getKey(),
+            (int) $line->getKey(),
+        );
+
+        $reversalPostingKey = sprintf(
+            'purchase-return:%d:line:%d:reverse',
+            (int) $purchaseReturn->getKey(),
+            (int) $line->getKey(),
+        );
+
+        $originalEntry =
+            StockLedgerEntry::query()
+                ->where(
+                    'posting_key',
+                    $originalPostingKey,
+                )
+                ->lockForUpdate()
+                ->first();
+
+        if (
+            !$originalEntry
+            instanceof StockLedgerEntry
+        ) {
+            throw new LogicException(
+                'The original Purchase Return stock entry was not found.',
+            );
+        }
+
+        $existingReversal =
+            StockLedgerEntry::query()
+                ->where(
+                    'posting_key',
+                    $reversalPostingKey,
+                )
+                ->lockForUpdate()
+                ->first();
+
+        if (
+            $existingReversal
+            instanceof StockLedgerEntry
+        ) {
+            return $existingReversal;
+        }
+
+        $this
+            ->ensureOriginalEntryMatchesPurchaseReturn(
+                purchaseReturn:
+                    $purchaseReturn,
+
+                line:
+                    $line,
+
+                originalEntry:
+                    $originalEntry,
+            );
+
+        $balance =
+            InventoryBalance::query()
+                ->where(
+                    'warehouse_id',
+                    $purchaseReturn
+                        ->warehouse_id,
+                )
+                ->where(
+                    'product_id',
+                    $line->product_id,
+                )
+                ->lockForUpdate()
+                ->first();
+
+        if (
+            !$balance
+            instanceof InventoryBalance
+        ) {
+            throw ValidationException::withMessages([
+                'purchase_return' => [
+                    'The inventory balance required for Purchase Return reversal was not found.',
+                ],
+            ]);
+        }
+
+        $this
+            ->ensureBalanceMatchesPurchaseReturnLocation(
+                purchaseReturn:
+                    $purchaseReturn,
+
+                line:
+                    $line,
+
+                balance:
+                    $balance,
+            );
+
+        /*
+         * Exact reversal is only safe when no later movement from
+         * another document exists for the same stock location.
+         */
+        $blockingLaterEntry =
+            StockLedgerEntry::query()
+                ->where(
+                    'warehouse_id',
+                    $purchaseReturn
+                        ->warehouse_id,
+                )
+                ->where(
+                    'product_id',
+                    $line->product_id,
+                )
+                ->where(
+                    'id',
+                    '>',
+                    $originalEntry
+                        ->getKey(),
+                )
+                ->where(
+                    static function (
+                        $query,
+                    ) use (
+                        $purchaseReturn,
+                    ): void {
+                        $query
+                            ->where(
+                                'source_type',
+                                '!=',
+                                PurchaseReturn::class,
+                            )
+                            ->orWhere(
+                                'source_id',
+                                '!=',
+                                $purchaseReturn
+                                    ->getKey(),
+                            );
+                    },
+                )
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->first();
+
+        if (
+            $blockingLaterEntry
+            instanceof StockLedgerEntry
+        ) {
+            throw ValidationException::withMessages([
+                'purchase_return' => [
+                    "Purchase Return {$purchaseReturn->return_number} cannot be reversed because a later stock movement exists for {$line->product_name}. Reverse the later movement first.",
+                ],
+            ]);
+        }
+
+        /*
+         * Use the immutable original Purchase Return ledger values.
+         */
+        $quantity = BigDecimal::of(
             (string) $originalEntry
                 ->quantity_out,
         )->toScale(
@@ -1523,98 +1302,319 @@ private function ensureOriginalEntryMatchesPurchaseReturn(
             RoundingMode::UNNECESSARY,
         );
 
-    if (
-        $originalEntry
-            ->movement_type
-            !== 'purchase_return'
-        || $originalEntry
-            ->source_type
-            !== PurchaseReturn::class
-        || (int) $originalEntry
-            ->source_id
-            !== (int) $purchaseReturn
-                ->getKey()
-        || (int) $originalEntry
-            ->source_line_id
-            !== (int) $line
-                ->getKey()
-        || (int) $originalEntry
-            ->branch_id
-            !== (int) $purchaseReturn
-                ->branch_id
-        || (int) $originalEntry
-            ->warehouse_id
-            !== (int) $purchaseReturn
-                ->warehouse_id
-        || (int) $originalEntry
-            ->product_id
-            !== (int) $line
-                ->product_id
-        || (int) $originalEntry
-            ->unit_id
-            !== (int) $line
-                ->unit_id
-        || $originalEntry
-            ->reversal_of_id
-            !== null
-        || !$postedQuantityIn
-            ->isZero()
-        || !$postedQuantityOut
-            ->isEqualTo(
-                $expectedQuantity,
-            )
-    ) {
-        throw new LogicException(
-            'The original Purchase Return stock entry does not match the return line being reversed.',
-        );
-    }
-}
+        $originalUnitCost =
+            BigDecimal::of(
+                (string) $originalEntry
+                    ->unit_cost,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
 
-private function ensureBalanceMatchesPurchaseReturnLocation(
-    PurchaseReturn $purchaseReturn,
-    PurchaseReturnLine $line,
-    InventoryBalance $balance,
-): void {
-    if (
-        (int) $balance->branch_id
-            !== (int) $purchaseReturn
-                ->branch_id
-        || (int) $balance->warehouse_id
-            !== (int) $purchaseReturn
-                ->warehouse_id
-        || (int) $balance->product_id
-            !== (int) $line
-                ->product_id
-        || (int) $balance->unit_id
-            !== (int) $line
-                ->unit_id
-    ) {
-        throw new LogicException(
-            'The inventory balance does not match the Purchase Return stock location.',
-        );
-    }
-}
+        $originalValue =
+            BigDecimal::of(
+                (string) $originalEntry
+                    ->total_cost,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
 
-private function ensurePurchaseReturnTenant(
-    PurchaseReturn $purchaseReturn,
-    PurchaseReturnLine $line,
-    User $actor,
-    int $tenantId,
-): void {
-    if (
-        (int) $purchaseReturn
-            ->tenant_id
-            !== $tenantId
-        || (int) $line
-            ->tenant_id
-            !== $tenantId
-        || (int) $actor
-            ->tenant_id
-            !== $tenantId
-    ) {
-        throw new LogicException(
-            'Purchase Return inventory posting crossed a tenant boundary.',
-        );
+        $currentQuantity =
+            BigDecimal::of(
+                (string) $balance
+                    ->quantity_on_hand,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        $currentValue =
+            BigDecimal::of(
+                (string) $balance
+                    ->inventory_value,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        $postedBalanceQuantity =
+            BigDecimal::of(
+                (string) $originalEntry
+                    ->balance_quantity,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        $postedBalanceValue =
+            BigDecimal::of(
+                (string) $originalEntry
+                    ->balance_value,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        if (
+            !$currentQuantity
+                ->isEqualTo(
+                    $postedBalanceQuantity,
+                )
+            || !$currentValue
+                ->isEqualTo(
+                    $postedBalanceValue,
+                )
+        ) {
+            throw ValidationException::withMessages([
+                'purchase_return' => [
+                    'The Purchase Return cannot be reversed because the inventory balance no longer matches its original posted balance.',
+                ],
+            ]);
+        }
+
+        $newQuantity =
+            $currentQuantity
+                ->plus(
+                    $quantity,
+                )
+                ->toScale(
+                    self::SCALE,
+                    RoundingMode::HALF_UP,
+                );
+
+        $newValue =
+            $currentValue
+                ->plus(
+                    $originalValue,
+                )
+                ->toScale(
+                    self::SCALE,
+                    RoundingMode::HALF_UP,
+                );
+
+        $newAverageCost =
+            $newQuantity->isZero()
+                ? BigDecimal::zero()
+                    ->toScale(
+                        self::SCALE,
+                    )
+                : $newValue
+                    ->dividedBy(
+                        $newQuantity,
+                        self::SCALE,
+                        RoundingMode::HALF_UP,
+                    );
+
+        $balance->quantity_on_hand =
+            $newQuantity->__toString();
+
+        $balance->inventory_value =
+            $newValue->__toString();
+
+        $balance->average_unit_cost =
+            $newAverageCost->__toString();
+
+        $balance->version =
+            (int) $balance->version + 1;
+
+        $balance->save();
+
+        return StockLedgerEntry::query()
+            ->create([
+                'branch_id' =>
+                    $purchaseReturn
+                        ->branch_id,
+
+                'warehouse_id' =>
+                    $purchaseReturn
+                        ->warehouse_id,
+
+                'product_id' =>
+                    $line->product_id,
+
+                'unit_id' =>
+                    $line->unit_id,
+
+                'movement_type' =>
+                    'purchase_return_reversal',
+
+                'posting_key' =>
+                    $reversalPostingKey,
+
+                'source_type' =>
+                    PurchaseReturn::class,
+
+                'source_id' =>
+                    $purchaseReturn
+                        ->getKey(),
+
+                'source_line_id' =>
+                    $line->getKey(),
+
+                'document_number' =>
+                    $purchaseReturn
+                        ->return_number,
+
+                'occurred_at' =>
+                    $occurredAt,
+
+                'quantity_in' =>
+                    $quantity
+                        ->__toString(),
+
+                'quantity_out' =>
+                    '0.000000',
+
+                'unit_cost' =>
+                    $originalUnitCost
+                        ->__toString(),
+
+                'total_cost' =>
+                    $originalValue
+                        ->__toString(),
+
+                'balance_quantity' =>
+                    $newQuantity
+                        ->__toString(),
+
+                'balance_value' =>
+                    $newValue
+                        ->__toString(),
+
+                'created_by_user_id' =>
+                    $actor->getKey(),
+
+                'reversal_of_id' =>
+                    $originalEntry
+                        ->getKey(),
+            ]);
     }
-}
+
+    private function ensureOriginalEntryMatchesPurchaseReturn(
+        PurchaseReturn $purchaseReturn,
+        PurchaseReturnLine $line,
+        StockLedgerEntry $originalEntry,
+    ): void {
+        $expectedQuantity =
+            BigDecimal::of(
+                (string) $line
+                    ->return_quantity,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        $postedQuantityIn =
+            BigDecimal::of(
+                (string) $originalEntry
+                    ->quantity_in,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        $postedQuantityOut =
+            BigDecimal::of(
+                (string) $originalEntry
+                    ->quantity_out,
+            )->toScale(
+                self::SCALE,
+                RoundingMode::UNNECESSARY,
+            );
+
+        if (
+            $originalEntry
+                ->movement_type
+                !== 'purchase_return'
+            || $originalEntry
+                ->source_type
+                !== PurchaseReturn::class
+            || (int) $originalEntry
+                ->source_id
+                !== (int) $purchaseReturn
+                    ->getKey()
+            || (int) $originalEntry
+                ->source_line_id
+                !== (int) $line
+                    ->getKey()
+            || (int) $originalEntry
+                ->branch_id
+                !== (int) $purchaseReturn
+                    ->branch_id
+            || (int) $originalEntry
+                ->warehouse_id
+                !== (int) $purchaseReturn
+                    ->warehouse_id
+            || (int) $originalEntry
+                ->product_id
+                !== (int) $line
+                    ->product_id
+            || (int) $originalEntry
+                ->unit_id
+                !== (int) $line
+                    ->unit_id
+            || $originalEntry
+                ->reversal_of_id
+                !== null
+            || !$postedQuantityIn
+                ->isZero()
+            || !$postedQuantityOut
+                ->isEqualTo(
+                    $expectedQuantity,
+                )
+        ) {
+            throw new LogicException(
+                'The original Purchase Return stock entry does not match the return line being reversed.',
+            );
+        }
+    }
+
+    private function ensureBalanceMatchesPurchaseReturnLocation(
+        PurchaseReturn $purchaseReturn,
+        PurchaseReturnLine $line,
+        InventoryBalance $balance,
+    ): void {
+        if (
+            (int) $balance->branch_id
+                !== (int) $purchaseReturn
+                    ->branch_id
+            || (int) $balance->warehouse_id
+                !== (int) $purchaseReturn
+                    ->warehouse_id
+            || (int) $balance->product_id
+                !== (int) $line
+                    ->product_id
+            || (int) $balance->unit_id
+                !== (int) $line
+                    ->unit_id
+        ) {
+            throw new LogicException(
+                'The inventory balance does not match the Purchase Return stock location.',
+            );
+        }
+    }
+
+    private function ensurePurchaseReturnTenant(
+        PurchaseReturn $purchaseReturn,
+        PurchaseReturnLine $line,
+        User $actor,
+        int $tenantId,
+    ): void {
+        if (
+            (int) $purchaseReturn
+                ->tenant_id
+                !== $tenantId
+            || (int) $line
+                ->tenant_id
+                !== $tenantId
+            || (int) $actor
+                ->tenant_id
+                !== $tenantId
+        ) {
+            throw new LogicException(
+                'Purchase Return inventory posting crossed a tenant boundary.',
+            );
+        }
+    }
 }
