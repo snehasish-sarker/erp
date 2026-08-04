@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Purchasing;
 
+use App\Contracts\Accounting\GoodsReceiptAccountingGateway;
 use App\Events\Purchasing\GoodsReceiptPosted;
 use App\Events\Purchasing\GoodsReceiptReversed;
 use App\Models\Branch;
@@ -11,9 +12,11 @@ use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptLine;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderLine;
+use App\Models\PurchaseReturn;
 use App\Models\Tenant;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\Accounting\AccountingPeriodService;
 use App\Services\Inventory\InventoryPostingService;
 use App\Services\Organisation\BranchAccessService;
 use App\Services\Settings\DocumentNumberService;
@@ -26,7 +29,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
-use App\Models\PurchaseReturn;
 
 final class GoodsReceiptService
 {
@@ -40,6 +42,8 @@ final class GoodsReceiptService
         private readonly BranchAccessService $branchAccessService,
         private readonly DocumentNumberService $documentNumberService,
         private readonly InventoryPostingService $inventoryPostingService,
+        private readonly AccountingPeriodService $accountingPeriodService,
+        private readonly GoodsReceiptAccountingGateway $accountingGateway,
         private readonly GoodsReceiptStatusRegistry $statusRegistry,
         private readonly GoodsReceiptInspectionStatusRegistry $inspectionStatusRegistry,
     ) {
@@ -601,6 +605,25 @@ final class GoodsReceiptService
                         $purchaseOrder,
                     );
 
+                $accountingPeriod =
+                    $this->accountingPeriodService
+                        ->lockOpenPeriod(
+                            $receiptEffectiveAt,
+                        );
+
+                $accountingReference =
+                    $this->accountingGateway
+                        ->post(
+                            goodsReceipt:
+                                $lockedReceipt,
+
+                            accountingPeriod:
+                                $accountingPeriod,
+
+                            actor:
+                                $actor,
+                        );
+
                 $lockedReceipt->status =
                     'posted';
 
@@ -611,14 +634,10 @@ final class GoodsReceiptService
                 $lockedReceipt->posted_at =
                     $postedAt;
 
-                $lockedReceipt->save();
+                $lockedReceipt->accounting_reference =
+                    $accountingReference;
 
-                /*
-                 * Future perpetual-accounting integration:
-                 *
-                 * Dr Inventory
-                 * Cr Goods Received Not Invoiced
-                 */
+                $lockedReceipt->save();
 
                 GoodsReceiptPosted::dispatch(
                     tenantId:
@@ -651,11 +670,11 @@ final class GoodsReceiptService
         string $reason,
         User $actor,
     ): GoodsReceipt {
+        $tenant = $this->tenantContext
+            ->tenant();
+
         $tenantId =
-            (int) $this
-                ->tenantContext
-                ->tenant()
-                ->getKey();
+            (int) $tenant->getKey();
 
         $this->ensureActorBelongsToTenant(
             actor: $actor,
@@ -689,6 +708,7 @@ final class GoodsReceiptService
                 $goodsReceipt,
                 $reason,
                 $actor,
+                $tenant,
                 $tenantId,
             ): GoodsReceipt {
                 $lockedReceipt =
@@ -715,35 +735,36 @@ final class GoodsReceiptService
                 }
 
                 $activePurchaseReturn =
-                        PurchaseReturn::query()
-                            ->where(
-                                'goods_receipt_id',
-                                $lockedReceipt
-                                    ->getKey(),
-                            )
-                            ->whereIn(
-                                'status',
-                                [
-                                    'draft',
-                                    'submitted',
-                                    'approved',
-                                    'posted',
-                                ],
-                            )
-                            ->orderBy('id')
-                            ->lockForUpdate()
-                            ->first();
-
-                    if (
-                        $activePurchaseReturn
-                        instanceof PurchaseReturn
-                    ) {
-                        throw ValidationException::withMessages([
-                            'goods_receipt' => [
-                                'The Goods Receipt cannot be reversed while an active Purchase Return references it. Cancel, delete, or reverse the Purchase Return first.',
+                    PurchaseReturn::query()
+                        ->where(
+                            'goods_receipt_id',
+                            $lockedReceipt
+                                ->getKey(),
+                        )
+                        ->whereIn(
+                            'status',
+                            [
+                                'draft',
+                                'submitted',
+                                'approved',
+                                'posted',
                             ],
-                        ]);
-                    }
+                        )
+                        ->orderBy('id')
+                        ->lockForUpdate()
+                        ->first();
+
+                if (
+                    $activePurchaseReturn
+                    instanceof PurchaseReturn
+                ) {
+                    throw ValidationException::withMessages([
+                        'goods_receipt' => [
+                            'The Goods Receipt cannot be reversed while an active Purchase Return references it. Cancel, delete, or reverse the Purchase Return first.',
+                        ],
+                    ]);
+                }
+
 
                 $purchaseOrder =
                     PurchaseOrder::query()
@@ -800,55 +821,56 @@ final class GoodsReceiptService
                         ->lockForUpdate()
                         ->get();
 
-                        foreach ($receiptLines as $receiptLine) {
-    $invoicedQuantity =
-        BigDecimal::of(
-            (string) $receiptLine
-                ->invoiced_quantity,
-        );
+                foreach ($receiptLines as $receiptLine) {
+                    $invoicedQuantity =
+                        BigDecimal::of(
+                            (string) $receiptLine
+                                ->invoiced_quantity,
+                        );
 
-    $reservedReturnQuantity =
-        BigDecimal::of(
-            (string) $receiptLine
-                ->return_reserved_quantity,
-        );
+                    $reservedReturnQuantity =
+                        BigDecimal::of(
+                            (string) $receiptLine
+                                ->return_reserved_quantity,
+                        );
 
-    $returnedQuantity =
-        BigDecimal::of(
-            (string) $receiptLine
-                ->returned_quantity,
-        );
+                    $returnedQuantity =
+                        BigDecimal::of(
+                            (string) $receiptLine
+                                ->returned_quantity,
+                        );
 
-    if (
-        $invoicedQuantity
-            ->isGreaterThan(
-                BigDecimal::zero(),
-            )
-    ) {
-        throw ValidationException::withMessages([
-            'goods_receipt' => [
-                "Goods Receipt {$lockedReceipt->receipt_number} cannot be reversed because {$receiptLine->product_name} has been reserved or used by a Supplier Invoice.",
-            ],
-        ]);
-    }
+                    if (
+                        $invoicedQuantity
+                            ->isGreaterThan(
+                                BigDecimal::zero(),
+                            )
+                    ) {
+                        throw ValidationException::withMessages([
+                            'goods_receipt' => [
+                                "Goods Receipt {$lockedReceipt->receipt_number} cannot be reversed because {$receiptLine->product_name} has been reserved or used by a Supplier Invoice.",
+                            ],
+                        ]);
+                    }
 
-    if (
-        $reservedReturnQuantity
-            ->isGreaterThan(
-                BigDecimal::zero(),
-            )
-        || $returnedQuantity
-            ->isGreaterThan(
-                BigDecimal::zero(),
-            )
-    ) {
-        throw ValidationException::withMessages([
-            'goods_receipt' => [
-                "Goods Receipt {$lockedReceipt->receipt_number} cannot be reversed because {$receiptLine->product_name} has Purchase Return activity.",
-            ],
-        ]);
-    }
-}
+                    if (
+                        $reservedReturnQuantity
+                            ->isGreaterThan(
+                                BigDecimal::zero(),
+                            )
+                        || $returnedQuantity
+                            ->isGreaterThan(
+                                BigDecimal::zero(),
+                            )
+                    ) {
+                        throw ValidationException::withMessages([
+                            'goods_receipt' => [
+                                "Goods Receipt {$lockedReceipt->receipt_number} cannot be reversed because {$receiptLine->product_name} has Purchase Return activity.",
+                            ],
+                        ]);
+                    }
+                }
+
 
                 /*
                  * Reversal is a new corrective movement, so
@@ -858,6 +880,17 @@ final class GoodsReceiptService
                     CarbonImmutable::now(
                         'UTC',
                     );
+
+                $reversalBusinessDate =
+                    $reversedAt->setTimezone(
+                        $tenant->timezone,
+                    );
+
+                $accountingPeriod =
+                    $this->accountingPeriodService
+                        ->lockOpenPeriod(
+                            $reversalBusinessDate,
+                        );
 
                 foreach (
                     $receiptLines
@@ -937,6 +970,25 @@ final class GoodsReceiptService
                         $purchaseOrder,
                     );
 
+                $accountingReversalReference =
+                    $this->accountingGateway
+                        ->reverse(
+                            goodsReceipt:
+                                $lockedReceipt,
+
+                            accountingPeriod:
+                                $accountingPeriod,
+
+                            reversalPostingDate:
+                                $reversalBusinessDate,
+
+                            reason:
+                                $reason,
+
+                            actor:
+                                $actor,
+                        );
+
                 $lockedReceipt->status =
                     'reversed';
 
@@ -947,6 +999,10 @@ final class GoodsReceiptService
                 $lockedReceipt
                     ->reversed_at =
                         $reversedAt;
+
+                $lockedReceipt
+                    ->accounting_reversal_reference =
+                        $accountingReversalReference;
 
                 $lockedReceipt
                     ->reversal_reason =
@@ -2448,6 +2504,7 @@ final class GoodsReceiptService
             'postedBy',
             'reversedBy',
             'documentNumberAllocation',
+            'journalEntries.lines.account',
         ]);
     }
 

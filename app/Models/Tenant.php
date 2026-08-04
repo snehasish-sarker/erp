@@ -127,4 +127,28 @@ final class Tenant extends Model
             PurchaseOrder::class,
         );
     }
+
+    /**
+     * @return HasMany<Account, $this>
+     */
+    public function accounts(): HasMany
+    {
+        return $this->hasMany(
+            Account::class,
+        )
+            ->orderBy('code')
+            ->orderBy('id');
+    }
+
+    /**
+     * @return HasMany<JournalEntry, $this>
+     */
+    public function journalEntries(): HasMany
+    {
+        return $this->hasMany(
+            JournalEntry::class,
+        )
+            ->orderByDesc('posting_date')
+            ->orderByDesc('id');
+    }
 }

@@ -56,9 +56,11 @@ final class PurchaseReturn extends Model
         'approved_at',
         'posted_by_user_id',
         'posted_at',
+        'accounting_reference',
         'reversed_by_user_id',
         'reversal_posting_date',
         'reversed_at',
+        'accounting_reversal_reference',
         'reversal_reason',
         'cancelled_by_user_id',
         'cancelled_at',
@@ -221,6 +223,19 @@ final class PurchaseReturn extends Model
             'source',
         )
             ->orderBy('occurred_at')
+            ->orderBy('id');
+    }
+
+    /**
+     * @return MorphMany<JournalEntry, $this>
+     */
+    public function journalEntries(): MorphMany
+    {
+        return $this->morphMany(
+            JournalEntry::class,
+            'source',
+        )
+            ->orderBy('posting_date')
             ->orderBy('id');
     }
 

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class SupplierDebitNote extends Model
@@ -358,5 +359,31 @@ final class SupplierDebitNote extends Model
             'reversed_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return MorphMany<SupplierLedgerEntry, $this>
+     */
+    public function supplierLedgerEntries(): MorphMany
+    {
+        return $this->morphMany(
+            SupplierLedgerEntry::class,
+            'source',
+        )
+            ->orderBy('posting_date')
+            ->orderBy('id');
+    }
+
+    /**
+     * @return MorphMany<SupplierOpenItem, $this>
+     */
+    public function supplierOpenItems(): MorphMany
+    {
+        return $this->morphMany(
+            SupplierOpenItem::class,
+            'source',
+        )
+            ->orderBy('posting_date')
+            ->orderBy('id');
     }
 }

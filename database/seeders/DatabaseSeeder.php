@@ -43,6 +43,7 @@ final class DatabaseSeeder extends Seeder
 
         $this->call([
             PermissionSeeder::class,
+            DefaultChartOfAccountsSeeder::class,
         ]);
     }
 }

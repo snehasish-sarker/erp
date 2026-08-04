@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Purchasing;
 
+use App\Contracts\Accounting\PurchaseReturnAccountingGateway;
 use App\Events\Purchasing\PurchaseReturnPosted;
 use App\Events\Purchasing\PurchaseReturnReversed;
 use App\Models\Branch;
@@ -17,6 +18,7 @@ use App\Models\SupplierInvoiceMatch;
 use App\Models\Tenant;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\Accounting\AccountingPeriodService;
 use App\Services\Inventory\InventoryPostingService;
 use App\Services\Organisation\BranchAccessService;
 use App\Services\Settings\DocumentNumberService;
@@ -44,6 +46,8 @@ final class PurchaseReturnService
         private readonly BranchAccessService $branchAccessService,
         private readonly DocumentNumberService $documentNumberService,
         private readonly InventoryPostingService $inventoryPostingService,
+        private readonly AccountingPeriodService $accountingPeriodService,
+        private readonly PurchaseReturnAccountingGateway $accountingGateway,
         private readonly PurchaseReturnCalculator $calculator,
         private readonly PurchaseReturnStatusRegistry $statusRegistry,
     ) {
@@ -1085,25 +1089,52 @@ final class PurchaseReturnService
                     $sourceLine->save();
                 }
 
-                $lockedReturn->fill([
-                    ...$this
+                $lockedReturn->fill(
+                    $this
                         ->calculator
                         ->calculateTotals(
                             $this->totalsInput(
                                 $lockedReturn,
                             ),
                         ),
+                );
 
-                    'status' => 'posted',
+                $lockedReturn->save();
 
-                    'posted_by_user_id' =>
-                        $actor->getKey(),
+                $accountingPeriod =
+                    $this->accountingPeriodService
+                        ->lockOpenPeriod(
+                            $occurredAt,
+                        );
 
-                    'posted_at' =>
-                        CarbonImmutable::now(
-                            'UTC',
-                        ),
-                ]);
+                $accountingReference =
+                    $this->accountingGateway
+                        ->post(
+                            purchaseReturn:
+                                $lockedReturn,
+
+                            accountingPeriod:
+                                $accountingPeriod,
+
+                            actor:
+                                $actor,
+                        );
+
+                $lockedReturn->status =
+                    'posted';
+
+                $lockedReturn
+                    ->posted_by_user_id =
+                        $actor->getKey();
+
+                $lockedReturn->posted_at =
+                    CarbonImmutable::now(
+                        'UTC',
+                    );
+
+                $lockedReturn
+                    ->accounting_reference =
+                        $accountingReference;
 
                 $lockedReturn->save();
 
@@ -1260,6 +1291,12 @@ final class PurchaseReturnService
                             $tenant,
                     );
 
+                $accountingPeriod =
+                    $this->accountingPeriodService
+                        ->lockOpenPeriod(
+                            $occurredAt,
+                        );
+
                 $lines =
                     $this->lockReturnLines(
                         purchaseReturn:
@@ -1341,6 +1378,25 @@ final class PurchaseReturnService
                     $sourceLine->save();
                 }
 
+                $accountingReversalReference =
+                    $this->accountingGateway
+                        ->reverse(
+                            purchaseReturn:
+                                $lockedReturn,
+
+                            accountingPeriod:
+                                $accountingPeriod,
+
+                            reversalPostingDate:
+                                $occurredAt,
+
+                            reason:
+                                $reason,
+
+                            actor:
+                                $actor,
+                        );
+
                 $lockedReturn->status =
                     'reversed';
 
@@ -1356,6 +1412,10 @@ final class PurchaseReturnService
                     CarbonImmutable::now(
                         'UTC',
                     );
+
+                $lockedReturn
+                    ->accounting_reversal_reference =
+                        $accountingReversalReference;
 
                 $lockedReturn
                     ->reversal_reason =

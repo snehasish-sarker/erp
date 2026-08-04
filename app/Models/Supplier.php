@@ -95,16 +95,62 @@ final class Supplier extends Model
     }
 
     /**
- * @return HasMany<SupplierDebitNote, $this>
- */
-public function supplierDebitNotes(): HasMany
-{
-    return $this->hasMany(
-        SupplierDebitNote::class,
-    )
-        ->orderByDesc(
-            'debit_note_date',
+     * @return HasMany<SupplierDebitNote, $this>
+     */
+    public function supplierDebitNotes(): HasMany
+    {
+        return $this->hasMany(
+            SupplierDebitNote::class,
         )
-        ->orderByDesc('id');
-}
+            ->orderByDesc(
+                'debit_note_date',
+            )
+            ->orderByDesc('id');
+    }
+
+    /**
+     * @return HasMany<SupplierInvoice, $this>
+     */
+    public function supplierInvoices(): HasMany
+    {
+        return $this->hasMany(
+            SupplierInvoice::class,
+        )
+            ->orderByDesc('invoice_date')
+            ->orderByDesc('id');
+    }
+
+    /**
+     * @return HasMany<SupplierLedgerEntry, $this>
+     */
+    public function supplierLedgerEntries(): HasMany
+    {
+        return $this->hasMany(
+            SupplierLedgerEntry::class,
+        )
+            ->orderByDesc('posting_date')
+            ->orderByDesc('id');
+    }
+
+    /**
+     * @return HasMany<SupplierOpenItem, $this>
+     */
+    public function supplierOpenItems(): HasMany
+    {
+        return $this->hasMany(
+            SupplierOpenItem::class,
+        )
+            ->orderByDesc('posting_date')
+            ->orderByDesc('id');
+    }
+
+    /**
+     * @return HasMany<SupplierOpenItemAllocation, $this>
+     */
+    public function supplierOpenItemAllocations(): HasMany
+    {
+        return $this->hasMany(
+            SupplierOpenItemAllocation::class,
+        )->orderByDesc('id');
+    }
 }

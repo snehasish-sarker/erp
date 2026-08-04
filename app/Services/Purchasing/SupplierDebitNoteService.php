@@ -17,6 +17,7 @@ use App\Models\SupplierInvoice;
 use App\Models\SupplierInvoiceLine;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\Accounting\AccountingPeriodService;
 use App\Services\Organisation\BranchAccessService;
 use App\Services\Settings\DocumentNumberService;
 use App\Support\Purchasing\SupplierDebitNoteStatusRegistry;
@@ -44,6 +45,7 @@ final class SupplierDebitNoteService
         private readonly TenantContext $tenantContext,
         private readonly BranchAccessService $branchAccessService,
         private readonly DocumentNumberService $documentNumberService,
+        private readonly AccountingPeriodService $accountingPeriodService,
         private readonly SupplierDebitNoteCalculator $calculator,
         private readonly SupplierDebitNoteStatusRegistry $statusRegistry,
         private readonly SupplierDebitNoteAccountingGateway $accountingGateway,
@@ -736,7 +738,8 @@ final class SupplierDebitNoteService
         SupplierDebitNote $supplierDebitNote,
         User $actor,
     ): SupplierDebitNote {
-        $tenantId = $this->activeTenantId();
+        $tenant = $this->tenantContext->tenant();
+        $tenantId = (int) $tenant->getKey();
 
         $this->ensureActorBelongsToTenant(
             actor: $actor,
@@ -987,7 +990,8 @@ final class SupplierDebitNoteService
         SupplierDebitNote $supplierDebitNote,
         User $actor,
     ): SupplierDebitNote {
-        $tenantId = $this->activeTenantId();
+        $tenant = $this->tenantContext->tenant();
+        $tenantId = (int) $tenant->getKey();
 
         $this->ensureActorBelongsToTenant(
             actor: $actor,
@@ -1005,6 +1009,7 @@ final class SupplierDebitNoteService
             function () use (
                 $supplierDebitNote,
                 $actor,
+                $tenant,
                 $tenantId,
             ): SupplierDebitNote {
                 $lockedDebitNote =
@@ -1040,12 +1045,29 @@ final class SupplierDebitNoteService
                     $lockedDebitNote,
                 );
 
+                $postingDate =
+                    $this->businessDateTime(
+                        date:
+                            $lockedDebitNote
+                                ->posting_date
+                                ->toDateString(),
+
+                        tenant: $tenant,
+                    );
+
+                $accountingPeriod =
+                    $this->accountingPeriodService
+                        ->lockOpenPeriod(
+                            $postingDate,
+                        );
+
                 /*
                  * The gateway must create a complete,
-                 * balanced financial posting or throw.
+                 * balanced journal and Accounts Payable
+                 * supplier-subledger posting or throw.
                  *
                  * The default gateway deliberately throws,
-                 * so the status and Supplier Invoice amounts
+                 * so the document and invoice allocation
                  * remain unchanged until accounting exists.
                  */
                 $accountingReference =
@@ -1053,6 +1075,9 @@ final class SupplierDebitNoteService
                         ->post(
                             supplierDebitNote:
                                 $lockedDebitNote,
+
+                            accountingPeriod:
+                                $accountingPeriod,
 
                             actor: $actor,
                         );
@@ -1155,6 +1180,7 @@ final class SupplierDebitNoteService
                 $normalizedReversalDate,
                 $reason,
                 $actor,
+                $tenant,
                 $tenantId,
             ): SupplierDebitNote {
                 $lockedDebitNote =
@@ -1213,14 +1239,31 @@ final class SupplierDebitNoteService
                     $lockedDebitNote,
                 );
 
+                $reversalDate =
+                    $this->businessDateTime(
+                        date:
+                            $normalizedReversalDate,
+
+                        tenant: $tenant,
+                    );
+
+                $accountingPeriod =
+                    $this->accountingPeriodService
+                        ->lockOpenPeriod(
+                            $reversalDate,
+                        );
+
                 $accountingReversalReference =
                     $this->accountingGateway
                         ->reverse(
                             supplierDebitNote:
                                 $lockedDebitNote,
 
+                            accountingPeriod:
+                                $accountingPeriod,
+
                             reversalPostingDate:
-                                $normalizedReversalDate,
+                                $reversalDate,
 
                             reason: $reason,
 

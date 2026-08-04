@@ -36,6 +36,7 @@ final class GoodsReceiptLine extends Model
         'previously_received_quantity_snapshot',
         'receipt_quantity',
         'accepted_quantity',
+        'invoiced_quantity',
         'rejected_quantity',
         'unit_cost',
         'total_cost',
@@ -133,6 +134,7 @@ final class GoodsReceiptLine extends Model
 
             'receipt_quantity' => 'decimal:6',
             'accepted_quantity' => 'decimal:6',
+            'invoiced_quantity' => 'decimal:6',
             'rejected_quantity' => 'decimal:6',
             'unit_cost' => 'decimal:6',
             'total_cost' => 'decimal:6',
@@ -140,35 +142,32 @@ final class GoodsReceiptLine extends Model
             'manufacturing_date' => 'date',
             'expiry_date' => 'date',
             'serial_numbers' => 'array',
-            'return_reserved_quantity' =>
-    'decimal:6',
-
-'returned_quantity' =>
-    'decimal:6',
+            'return_reserved_quantity' => 'decimal:6',
+            'returned_quantity' => 'decimal:6',
         ];
     }
 
     /**
- * @return HasMany<PurchaseReturnLine, $this>
- */
-public function purchaseReturnLines(): HasMany
-{
-    return $this->hasMany(
-        PurchaseReturnLine::class,
-    )->orderBy('id');
-}
+     * @return HasMany<PurchaseReturnLine, $this>
+     */
+    public function purchaseReturnLines(): HasMany
+    {
+        return $this->hasMany(
+            PurchaseReturnLine::class,
+        )->orderBy('id');
+    }
 
-public function hasPurchaseReturnActivity(): bool
-{
-    return BigDecimal::of(
-        (string) $this->return_reserved_quantity,
-    )->isGreaterThan(
-        BigDecimal::zero(),
-    )
-        || BigDecimal::of(
-            (string) $this->returned_quantity,
+    public function hasPurchaseReturnActivity(): bool
+    {
+        return BigDecimal::of(
+            (string) $this->return_reserved_quantity,
         )->isGreaterThan(
             BigDecimal::zero(),
-        );
-}
+        )
+            || BigDecimal::of(
+                (string) $this->returned_quantity,
+            )->isGreaterThan(
+                BigDecimal::zero(),
+            );
+    }
 }

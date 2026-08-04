@@ -43,8 +43,10 @@ final class GoodsReceipt extends Model
         'created_by_user_id',
         'posted_by_user_id',
         'posted_at',
+        'accounting_reference',
         'reversed_by_user_id',
         'reversed_at',
+        'accounting_reversal_reference',
         'reversal_reason',
     ];
 
@@ -237,6 +239,19 @@ final class GoodsReceipt extends Model
             ->orderBy('id');
     }
 
+    /**
+     * @return MorphMany<JournalEntry, $this>
+     */
+    public function journalEntries(): MorphMany
+    {
+        return $this->morphMany(
+            JournalEntry::class,
+            'source',
+        )
+            ->orderBy('posting_date')
+            ->orderBy('id');
+    }
+
     public function canBeDeleted(): bool
     {
         return $this->isDraft()
@@ -262,16 +277,16 @@ final class GoodsReceipt extends Model
     }
 
     /**
- * @return HasMany<SupplierDebitNote, $this>
- */
-public function supplierDebitNotes(): HasMany
-{
-    return $this->hasMany(
-        SupplierDebitNote::class,
-    )
-        ->orderByDesc(
-            'debit_note_date',
+     * @return HasMany<SupplierDebitNote, $this>
+     */
+    public function supplierDebitNotes(): HasMany
+    {
+        return $this->hasMany(
+            SupplierDebitNote::class,
         )
-        ->orderByDesc('id');
-}
+            ->orderByDesc(
+                'debit_note_date',
+            )
+            ->orderByDesc('id');
+    }
 }

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 final class SupplierInvoice extends Model
@@ -334,57 +335,83 @@ final class SupplierInvoice extends Model
     }
 
     /**
- * @return HasMany<PurchaseReturn, $this>
- */
-public function purchaseReturns(): HasMany
-{
-    return $this->hasMany(
-        PurchaseReturn::class,
-    )
-        ->orderByDesc('return_date')
-        ->orderByDesc('id');
-}
-
-/**
- * @return HasMany<SupplierDebitNote, $this>
- */
-public function supplierDebitNotes(): HasMany
-{
-    return $this->hasMany(
-        SupplierDebitNote::class,
-    )
-        ->orderByDesc(
-            'debit_note_date',
+     * @return HasMany<PurchaseReturn, $this>
+     */
+    public function purchaseReturns(): HasMany
+    {
+        return $this->hasMany(
+            PurchaseReturn::class,
         )
-        ->orderByDesc('id');
-}
+            ->orderByDesc('return_date')
+            ->orderByDesc('id');
+    }
 
-/**
- * @return HasMany<SupplierDebitNoteAllocation, $this>
- */
-public function supplierDebitNoteAllocations(): HasMany
-{
-    return $this->hasMany(
-        SupplierDebitNoteAllocation::class,
-    )->orderBy('id');
-}
-
-public function availableDebitNoteAmount(): BigDecimal
-{
-    return BigDecimal::of(
-        (string) $this->total_amount,
-    )
-        ->minus(
-            BigDecimal::of(
-                (string) $this
-                    ->debit_note_reserved_amount,
-            ),
+    /**
+     * @return HasMany<SupplierDebitNote, $this>
+     */
+    public function supplierDebitNotes(): HasMany
+    {
+        return $this->hasMany(
+            SupplierDebitNote::class,
         )
-        ->minus(
-            BigDecimal::of(
-                (string) $this
-                    ->debited_amount,
-            ),
-        );
-}
+            ->orderByDesc(
+                'debit_note_date',
+            )
+            ->orderByDesc('id');
+    }
+
+    /**
+     * @return HasMany<SupplierDebitNoteAllocation, $this>
+     */
+    public function supplierDebitNoteAllocations(): HasMany
+    {
+        return $this->hasMany(
+            SupplierDebitNoteAllocation::class,
+        )->orderBy('id');
+    }
+
+    public function availableDebitNoteAmount(): BigDecimal
+    {
+        return BigDecimal::of(
+            (string) $this->total_amount,
+        )
+            ->minus(
+                BigDecimal::of(
+                    (string) $this
+                        ->debit_note_reserved_amount,
+                ),
+            )
+            ->minus(
+                BigDecimal::of(
+                    (string) $this
+                        ->debited_amount,
+                ),
+            );
+    }
+
+    /**
+     * @return MorphMany<SupplierLedgerEntry, $this>
+     */
+    public function supplierLedgerEntries(): MorphMany
+    {
+        return $this->morphMany(
+            SupplierLedgerEntry::class,
+            'source',
+        )
+            ->orderBy('posting_date')
+            ->orderBy('id');
+    }
+
+    /**
+     * @return MorphMany<SupplierOpenItem, $this>
+     */
+    public function supplierOpenItems(): MorphMany
+    {
+        return $this->morphMany(
+            SupplierOpenItem::class,
+            'source',
+        )
+            ->orderBy('posting_date')
+            ->orderBy('id');
+    }
 }

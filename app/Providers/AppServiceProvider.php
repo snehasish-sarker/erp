@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Accounting\GoodsReceiptAccountingGateway;
+use App\Contracts\Accounting\PurchaseReturnAccountingGateway;
 use App\Contracts\Accounting\SupplierDebitNoteAccountingGateway;
 use App\Contracts\Accounting\SupplierInvoiceAccountingGateway;
+use App\Models\Account;
 use App\Models\AccountingPeriod;
 use App\Models\AuditLog;
 use App\Models\Brand;
@@ -14,6 +17,7 @@ use App\Models\DocumentSequence;
 use App\Models\ExportRequest;
 use App\Models\FiscalYear;
 use App\Models\GoodsReceipt;
+use App\Models\JournalEntry;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\PurchaseOrder;
@@ -24,6 +28,7 @@ use App\Models\SupplierInvoice;
 use App\Models\TenantFile;
 use App\Models\Unit;
 use App\Models\UserNotification;
+use App\Policies\AccountPolicy;
 use App\Policies\AccountingPeriodPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BrandPolicy;
@@ -32,6 +37,7 @@ use App\Policies\DocumentSequencePolicy;
 use App\Policies\ExportRequestPolicy;
 use App\Policies\FiscalYearPolicy;
 use App\Policies\GoodsReceiptPolicy;
+use App\Policies\JournalEntryPolicy;
 use App\Policies\ProductCategoryPolicy;
 use App\Policies\ProductPolicy;
 use App\Policies\PurchaseOrderPolicy;
@@ -43,8 +49,10 @@ use App\Policies\SupplierPolicy;
 use App\Policies\TenantFilePolicy;
 use App\Policies\UnitPolicy;
 use App\Policies\UserNotificationPolicy;
-use App\Services\Accounting\UnconfiguredSupplierDebitNoteAccountingGateway;
-use App\Services\Accounting\UnconfiguredSupplierInvoiceAccountingGateway;
+use App\Services\Accounting\GeneralLedgerGoodsReceiptAccountingGateway;
+use App\Services\Accounting\GeneralLedgerPurchaseReturnAccountingGateway;
+use App\Services\Accounting\GeneralLedgerSupplierDebitNoteAccountingGateway;
+use App\Services\Accounting\GeneralLedgerSupplierInvoiceAccountingGateway;
 use App\Support\Exports\Definitions\AuditLogExportDefinition;
 use App\Support\Exports\ExportRegistry;
 use App\Support\Tenancy\TenantContext;
@@ -63,23 +71,35 @@ final class AppServiceProvider extends ServiceProvider
         );
 
         /*
-         * Supplier Invoice posting and reversal remain fail-closed
-         * until the Accounts Payable/GRNI journal module replaces
-         * this implementation with a real accounting gateway.
+         * Supplier Invoice accounting now posts the General Ledger journal
+         * and Accounts Payable subledger atomically. The gateway still fails
+         * closed when a matched Goods Receipt does not yet have its posted
+         * inventory/GRNI journal.
          */
         $this->app->bind(
+            GoodsReceiptAccountingGateway::class,
+            GeneralLedgerGoodsReceiptAccountingGateway::class,
+        );
+
+        $this->app->bind(
+            PurchaseReturnAccountingGateway::class,
+            GeneralLedgerPurchaseReturnAccountingGateway::class,
+        );
+
+        $this->app->bind(
             SupplierInvoiceAccountingGateway::class,
-            UnconfiguredSupplierInvoiceAccountingGateway::class,
+            GeneralLedgerSupplierInvoiceAccountingGateway::class,
         );
 
         /*
-         * Supplier Debit Note posting and reversal remain fail-closed
-         * until the Accounts Payable and journal-entry module replaces
-         * this implementation with a real accounting gateway.
+         * Supplier Debit Note accounting posts the balanced General Ledger
+         * journal and Accounts Payable subledger atomically. It still fails
+         * closed until the source Purchase Return has its posted inventory
+         * and return-clearing journal.
          */
         $this->app->bind(
             SupplierDebitNoteAccountingGateway::class,
-            UnconfiguredSupplierDebitNoteAccountingGateway::class,
+            GeneralLedgerSupplierDebitNoteAccountingGateway::class,
         );
 
         $this->app->singleton(
@@ -119,6 +139,16 @@ final class AppServiceProvider extends ServiceProvider
         Gate::policy(
             AccountingPeriod::class,
             AccountingPeriodPolicy::class,
+        );
+
+        Gate::policy(
+            Account::class,
+            AccountPolicy::class,
+        );
+
+        Gate::policy(
+            JournalEntry::class,
+            JournalEntryPolicy::class,
         );
 
         Gate::policy(
