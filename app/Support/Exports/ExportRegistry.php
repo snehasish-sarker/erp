@@ -72,7 +72,8 @@ final class ExportRegistry
 
         foreach ($this->definitions as $definition) {
             if (
-                !$user->can(
+                !$definition->isSelectableFromExportCenter()
+                || !$user->can(
                     $definition->requiredPermission(),
                 )
             ) {

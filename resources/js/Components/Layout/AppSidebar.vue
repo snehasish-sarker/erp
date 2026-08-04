@@ -16,9 +16,13 @@ import {
     TableIcon,
     UserCircleIcon,
     UserGroupIcon,
+    BarChartIcon
 } from '@/Icons';
 import { useAuthorization } from '@/Composables/useAuthorization';
 import { useSidebar } from '@/Composables/useSidebar';
+
+const namedPath = (name: string): string =>
+    route(name, undefined, false);
 
 interface SubmenuItem {
     name: string;
@@ -136,49 +140,49 @@ const menuGroups: MenuGroup[] = [
             },
         ],
     },
-        {
-    title: 'Master Data',
-    items: [
-        {
-            name: 'Catalogue',
-            icon: BoxCubeIcon,
-            subItems: [
-                {
-                    name: 'Products',
-                    path: '/erp/products',
-                    permission: 'products.view',
-                },
-                {
-                    name: 'Categories',
-                    path: '/erp/product-categories',
-                    permission: 'product_categories.view',
-                },
-                {
-                    name: 'Brands',
-                    path: '/erp/brands',
-                    permission: 'brands.view',
-                },
-                {
-                    name: 'Units',
-                    path: '/erp/units',
-                    permission: 'units.view',
-                },
-            ],
-        },
-        {
-            name: 'Suppliers',
-            icon: UserCircleIcon,
-            path: '/erp/suppliers',
-            permission: 'suppliers.view',
-        },
-        {
-            name: 'Customers',
-            icon: UserCircleIcon,
-            path: '/erp/customers',
-            permission: 'customers.view',
-        },
-    ],
-},
+    {
+        title: 'Master Data',
+        items: [
+            {
+                name: 'Catalogue',
+                icon: BoxCubeIcon,
+                subItems: [
+                    {
+                        name: 'Products',
+                        path: '/erp/products',
+                        permission: 'products.view',
+                    },
+                    {
+                        name: 'Categories',
+                        path: '/erp/product-categories',
+                        permission: 'product_categories.view',
+                    },
+                    {
+                        name: 'Brands',
+                        path: '/erp/brands',
+                        permission: 'brands.view',
+                    },
+                    {
+                        name: 'Units',
+                        path: '/erp/units',
+                        permission: 'units.view',
+                    },
+                ],
+            },
+            {
+                name: 'Suppliers',
+                icon: UserCircleIcon,
+                path: '/erp/suppliers',
+                permission: 'suppliers.view',
+            },
+            {
+                name: 'Customers',
+                icon: UserCircleIcon,
+                path: '/erp/customers',
+                permission: 'customers.view',
+            },
+        ],
+    },
     {
         title: 'Operations',
         items: [
@@ -210,6 +214,11 @@ const menuGroups: MenuGroup[] = [
                         name: 'Supplier Debit Notes',
                         path: '/erp/supplier-debit-notes',
                         permission: 'supplier_debit_notes.view',
+                    },
+                    {
+                        name: 'Supplier Payments',
+                        path: '/erp/supplier-payments',
+                        permission: 'supplier_payments.view',
                     },
                 ],
             },
@@ -257,6 +266,31 @@ const menuGroups: MenuGroup[] = [
                         name: 'Adjustments',
                         path: '/erp/inventory/adjustments',
                         permission: 'inventory.adjust',
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        title: 'Reports',
+        items: [
+            {
+                name: 'Accounts Payable',
+                icon: BarChartIcon,
+                subItems: [
+                    {
+                        name: 'AP Aging',
+                        path: namedPath(
+                            'reports.accounts-payable.aging',
+                        ),
+                        permission: 'reports.payables',
+                    },
+                    {
+                        name: 'Supplier Statement',
+                        path: namedPath(
+                            'reports.accounts-payable.supplier-statement',
+                        ),
+                        permission: 'reports.payables',
                     },
                 ],
             },

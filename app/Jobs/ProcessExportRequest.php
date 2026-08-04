@@ -98,18 +98,52 @@ final class ProcessExportRequest implements ShouldQueue
                 return;
             }
 
+            $requester = User::query()
+                ->where(
+                    'tenant_id',
+                    $this->tenantId,
+                )
+                ->whereKey(
+                    $exportRequest
+                        ->requested_by_user_id,
+                )
+                ->where(
+                    'status',
+                    'active',
+                )
+                ->first();
+
+            if (!$requester instanceof User) {
+                throw new LogicException(
+                    'The export requester is no longer an active tenant user.',
+                );
+            }
+
             $definition = $exportRegistry->get(
                 $exportRequest->export_type,
             );
 
+            if (
+                !$requester->can('exports.create')
+                || !$requester->can(
+                    $definition->requiredPermission(),
+                )
+            ) {
+                throw new LogicException(
+                    'The export requester no longer has permission to generate this export.',
+                );
+            }
+
             $filters =
                 $definition->validateFilters(
                     $exportRequest->filters ?? [],
+                    $requester,
                 );
 
             $totalRows =
                 $definition->totalRows(
                     $filters,
+                    $requester,
                 );
 
             $temporaryPath =
@@ -119,19 +153,9 @@ final class ProcessExportRequest implements ShouldQueue
                 path: $temporaryPath,
                 definition: $definition,
                 filters: $filters,
+                requester: $requester,
                 totalRows: $totalRows,
             );
-
-            $requester = User::withTrashed()
-                ->where(
-                    'tenant_id',
-                    $this->tenantId,
-                )
-                ->whereKey(
-                    $exportRequest
-                        ->requested_by_user_id,
-                )
-                ->first();
 
             $fileName = $this->fileName(
                 exportRequest: $exportRequest,
@@ -432,6 +456,7 @@ final class ProcessExportRequest implements ShouldQueue
         string $path,
         ExportDefinition $definition,
         array $filters,
+        User $requester,
         int $totalRows,
     ): int {
         $stream = fopen($path, 'wb');
@@ -457,7 +482,10 @@ final class ProcessExportRequest implements ShouldQueue
             $lastProgress = 1;
 
             foreach (
-                $definition->rows($filters)
+                $definition->rows(
+                    $filters,
+                    $requester,
+                )
                 as $model
             ) {
                 $this->writeCsvRow(
@@ -527,10 +555,10 @@ final class ProcessExportRequest implements ShouldQueue
             $stream,
 
             array_map(
-                static fn (
+                fn (
                     string|int|float|null $value,
                 ): string|int|float =>
-                    $value ?? '',
+                    $this->safeCsvValue($value),
 
                 $values,
             ),
@@ -546,6 +574,51 @@ final class ProcessExportRequest implements ShouldQueue
                 'An export row could not be written.',
             );
         }
+    }
+
+    private function safeCsvValue(
+        string|int|float|null $value,
+    ): string|int|float {
+        if ($value === null) {
+            return '';
+        }
+
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        $trimmed = ltrim($value);
+
+        if ($trimmed === '') {
+            return $value;
+        }
+
+        $firstCharacter = $trimmed[0];
+
+        $isFormulaPrefix = in_array(
+            $firstCharacter,
+            [
+                '=',
+                '@',
+                "\t",
+                "\r",
+            ],
+            true,
+        );
+
+        $isSignedNonNumeric = in_array(
+            $firstCharacter,
+            [
+                '+',
+                '-',
+            ],
+            true,
+        ) && !is_numeric($trimmed);
+
+        return $isFormulaPrefix
+            || $isSignedNonNumeric
+                ? "'{$value}"
+                : $value;
     }
 
     private function updateProgress(

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Support\Exports\Definitions;
 
 use App\Models\AuditLog;
+use App\Models\User;
 use App\Support\Exports\ExportDefinition;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\LazyCollection;
 use Illuminate\Support\Str;
@@ -38,6 +38,11 @@ final class AuditLogExportDefinition implements ExportDefinition
     public function requiredPermission(): string
     {
         return 'audit_logs.view';
+    }
+
+    public function isSelectableFromExportCenter(): bool
+    {
+        return true;
     }
 
     /**
@@ -70,8 +75,10 @@ final class AuditLogExportDefinition implements ExportDefinition
      * @param array<string, mixed> $filters
      * @return array<string, mixed>
      */
-    public function validateFilters(array $filters): array
-    {
+    public function validateFilters(
+        array $filters,
+        User $requester,
+    ): array {
         $validator = Validator::make(
             $filters,
             [
@@ -193,17 +200,21 @@ final class AuditLogExportDefinition implements ExportDefinition
     /**
      * @param array<string, mixed> $filters
      */
-    public function totalRows(array $filters): int
-    {
+    public function totalRows(
+        array $filters,
+        User $requester,
+    ): int {
         return (clone $this->query($filters))->count();
     }
 
     /**
      * @param array<string, mixed> $filters
-     * @return LazyCollection<int, Model>
+     * @return LazyCollection<int, AuditLog>
      */
-    public function rows(array $filters): LazyCollection
-    {
+    public function rows(
+        array $filters,
+        User $requester,
+    ): LazyCollection {
         $chunkSize = max(
             100,
             (int) config(
@@ -230,7 +241,7 @@ final class AuditLogExportDefinition implements ExportDefinition
     /**
      * @return list<string|int|float|null>
      */
-    public function mapRow(Model $model): array
+    public function mapRow(mixed $model): array
     {
         if (!$model instanceof AuditLog) {
             throw new LogicException(

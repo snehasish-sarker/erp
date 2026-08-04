@@ -182,7 +182,11 @@ final class PermissionSeeder extends Seeder
 
         'supplier_payments.view',
         'supplier_payments.create',
+        'supplier_payments.update',
+        'supplier_payments.delete',
+        'supplier_payments.submit',
         'supplier_payments.approve',
+        'supplier_payments.cancel',
         'supplier_payments.post',
         'supplier_payments.reverse',
 
@@ -535,6 +539,10 @@ final class PermissionSeeder extends Seeder
 
                 'supplier_payments.view',
                 'supplier_payments.create',
+                'supplier_payments.update',
+                'supplier_payments.delete',
+                'supplier_payments.submit',
+                'supplier_payments.cancel',
                 'supplier_payments.post',
                 'supplier_payments.reverse',
 
@@ -705,9 +713,8 @@ final class PermissionSeeder extends Seeder
         }
 
         /*
-         * Existing operational roles receive any newly introduced baseline
-         * permissions without removing additional permissions that may have
-         * been assigned manually.
+         * Existing operational roles receive newly introduced baseline
+         * permissions without removing additional manually assigned ones.
          */
         $role->givePermissionTo(
             $permissions,

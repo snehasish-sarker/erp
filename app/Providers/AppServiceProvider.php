@@ -8,6 +8,7 @@ use App\Contracts\Accounting\GoodsReceiptAccountingGateway;
 use App\Contracts\Accounting\PurchaseReturnAccountingGateway;
 use App\Contracts\Accounting\SupplierDebitNoteAccountingGateway;
 use App\Contracts\Accounting\SupplierInvoiceAccountingGateway;
+use App\Contracts\Accounting\SupplierPaymentAccountingGateway;
 use App\Models\Account;
 use App\Models\AccountingPeriod;
 use App\Models\AuditLog;
@@ -25,6 +26,7 @@ use App\Models\PurchaseReturn;
 use App\Models\Supplier;
 use App\Models\SupplierDebitNote;
 use App\Models\SupplierInvoice;
+use App\Models\SupplierPayment;
 use App\Models\TenantFile;
 use App\Models\Unit;
 use App\Models\UserNotification;
@@ -45,6 +47,7 @@ use App\Policies\PurchaseReturnPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\SupplierDebitNotePolicy;
 use App\Policies\SupplierInvoicePolicy;
+use App\Policies\SupplierPaymentPolicy;
 use App\Policies\SupplierPolicy;
 use App\Policies\TenantFilePolicy;
 use App\Policies\UnitPolicy;
@@ -53,7 +56,11 @@ use App\Services\Accounting\GeneralLedgerGoodsReceiptAccountingGateway;
 use App\Services\Accounting\GeneralLedgerPurchaseReturnAccountingGateway;
 use App\Services\Accounting\GeneralLedgerSupplierDebitNoteAccountingGateway;
 use App\Services\Accounting\GeneralLedgerSupplierInvoiceAccountingGateway;
+use App\Services\Accounting\GeneralLedgerSupplierPaymentAccountingGateway;
+use App\Support\Exports\Definitions\AccountsPayableAgingExportDefinition;
 use App\Support\Exports\Definitions\AuditLogExportDefinition;
+use App\Support\Exports\Definitions\SupplierAgingExportDefinition;
+use App\Support\Exports\Definitions\SupplierStatementExportDefinition;
 use App\Support\Exports\ExportRegistry;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Contracts\Container\Container;
@@ -71,10 +78,8 @@ final class AppServiceProvider extends ServiceProvider
         );
 
         /*
-         * Supplier Invoice accounting now posts the General Ledger journal
-         * and Accounts Payable subledger atomically. The gateway still fails
-         * closed when a matched Goods Receipt does not yet have its posted
-         * inventory/GRNI journal.
+         * Purchasing accounting gateways post their General Ledger and
+         * related inventory or Accounts Payable records atomically.
          */
         $this->app->bind(
             GoodsReceiptAccountingGateway::class,
@@ -102,6 +107,16 @@ final class AppServiceProvider extends ServiceProvider
             GeneralLedgerSupplierDebitNoteAccountingGateway::class,
         );
 
+        /*
+         * Supplier Payment accounting posts the balanced General Ledger
+         * journal, supplier ledger, payment open item and invoice
+         * allocations atomically inside the source transaction.
+         */
+        $this->app->bind(
+            SupplierPaymentAccountingGateway::class,
+            GeneralLedgerSupplierPaymentAccountingGateway::class,
+        );
+
         $this->app->singleton(
             ExportRegistry::class,
             static fn (
@@ -109,6 +124,18 @@ final class AppServiceProvider extends ServiceProvider
             ): ExportRegistry => new ExportRegistry([
                 $container->make(
                     AuditLogExportDefinition::class,
+                ),
+
+                $container->make(
+                    AccountsPayableAgingExportDefinition::class,
+                ),
+
+                $container->make(
+                    SupplierAgingExportDefinition::class,
+                ),
+
+                $container->make(
+                    SupplierStatementExportDefinition::class,
                 ),
             ]),
         );
@@ -219,6 +246,11 @@ final class AppServiceProvider extends ServiceProvider
         Gate::policy(
             SupplierDebitNote::class,
             SupplierDebitNotePolicy::class,
+        );
+
+        Gate::policy(
+            SupplierPayment::class,
+            SupplierPaymentPolicy::class,
         );
     }
 }

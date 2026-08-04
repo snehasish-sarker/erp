@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Exports;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use Illuminate\Support\LazyCollection;
 
 interface ExportDefinition
@@ -15,6 +15,8 @@ interface ExportDefinition
 
     public function requiredPermission(): string;
 
+    public function isSelectableFromExportCenter(): bool;
+
     /**
      * @return list<string>
      */
@@ -24,21 +26,30 @@ interface ExportDefinition
      * @param array<string, mixed> $filters
      * @return array<string, mixed>
      */
-    public function validateFilters(array $filters): array;
+    public function validateFilters(
+        array $filters,
+        User $requester,
+    ): array;
 
     /**
      * @param array<string, mixed> $filters
      */
-    public function totalRows(array $filters): int;
+    public function totalRows(
+        array $filters,
+        User $requester,
+    ): int;
 
     /**
      * @param array<string, mixed> $filters
-     * @return LazyCollection<int, Model>
+     * @return LazyCollection<int, mixed>
      */
-    public function rows(array $filters): LazyCollection;
+    public function rows(
+        array $filters,
+        User $requester,
+    ): LazyCollection;
 
     /**
      * @return list<string|int|float|null>
      */
-    public function mapRow(Model $model): array;
+    public function mapRow(mixed $row): array;
 }

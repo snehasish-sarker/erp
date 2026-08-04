@@ -86,6 +86,7 @@ final class ExportRequestService
         $validatedFilters =
             $definition->validateFilters(
                 $filters,
+                $requester,
             );
 
         return DB::transaction(

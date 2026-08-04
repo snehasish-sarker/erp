@@ -17,4 +17,9 @@ return [
         'EXPORT_CHUNK_SIZE',
         500,
     ),
+
+    'print_max_rows' => (int) env(
+        'REPORT_PRINT_MAX_ROWS',
+        5000,
+    ),
 ];

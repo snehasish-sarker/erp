@@ -5,7 +5,9 @@ declare(strict_types=1);
 use App\Http\Controllers\AccessControl\RoleController;
 use App\Http\Controllers\AccessControl\UserController;
 use App\Http\Controllers\Accounting\AccountingPeriodController;
+use App\Http\Controllers\Accounting\AccountsPayableReportController;
 use App\Http\Controllers\Accounting\FiscalYearController;
+use App\Http\Controllers\Accounting\SupplierPaymentController;
 use App\Http\Controllers\Auditing\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Exports\ExportRequestController;
@@ -1450,6 +1452,165 @@ Route::middleware([
                 )
                 ->name('reverse');
         });
+
+            /*
+    |--------------------------------------------------------------------------
+    | Supplier Payments
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('supplier-payments')
+        ->name('supplier-payments.')
+        ->controller(
+            SupplierPaymentController::class,
+        )
+        ->group(function (): void {
+            Route::get('/', 'index')
+                ->middleware(
+                    'permission:supplier_payments.view',
+                )
+                ->name('index');
+
+            Route::get('/create', 'create')
+                ->middleware(
+                    'permission:supplier_payments.create',
+                )
+                ->name('create');
+
+            Route::post('/', 'store')
+                ->middleware(
+                    'permission:supplier_payments.create',
+                )
+                ->name('store');
+
+            Route::get(
+                '/{supplierPayment}',
+                'show',
+            )
+                ->middleware(
+                    'permission:supplier_payments.view',
+                )
+                ->name('show');
+
+            Route::get(
+                '/{supplierPayment}/edit',
+                'edit',
+            )
+                ->middleware(
+                    'permission:supplier_payments.update',
+                )
+                ->name('edit');
+
+            Route::put(
+                '/{supplierPayment}',
+                'update',
+            )
+                ->middleware(
+                    'permission:supplier_payments.update',
+                )
+                ->name('update');
+
+            Route::delete(
+                '/{supplierPayment}',
+                'destroy',
+            )
+                ->middleware(
+                    'permission:supplier_payments.delete',
+                )
+                ->name('destroy');
+
+            Route::post(
+                '/{supplierPayment}/submit',
+                'submit',
+            )
+                ->middleware(
+                    'permission:supplier_payments.submit',
+                )
+                ->name('submit');
+
+            Route::post(
+                '/{supplierPayment}/return-to-draft',
+                'returnToDraft',
+            )
+                ->middleware(
+                    'permission:supplier_payments.submit',
+                )
+                ->name('return-to-draft');
+
+            Route::post(
+                '/{supplierPayment}/approve',
+                'approve',
+            )
+                ->middleware(
+                    'permission:supplier_payments.approve',
+                )
+                ->name('approve');
+
+            Route::post(
+                '/{supplierPayment}/cancel',
+                'cancel',
+            )
+                ->middleware(
+                    'permission:supplier_payments.cancel',
+                )
+                ->name('cancel');
+
+            Route::post(
+                '/{supplierPayment}/post',
+                'post',
+            )
+                ->middleware(
+                    'permission:supplier_payments.post',
+                )
+                ->name('post');
+
+            Route::post(
+                '/{supplierPayment}/reverse',
+                'reverse',
+            )
+                ->middleware(
+                    'permission:supplier_payments.reverse',
+                )
+                ->name('reverse');
+        });
+
+            /*
+    |--------------------------------------------------------------------------
+    | Accounts Payable Reports
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('reports/accounts-payable')
+        ->name('reports.accounts-payable.')
+        ->controller(
+            AccountsPayableReportController::class,
+        )
+        ->middleware(
+            'permission:reports.payables',
+        )
+        ->group(function (): void {
+            Route::get(
+                '/aging',
+                'aging',
+            )->name('aging');
+
+            Route::get(
+                '/aging/suppliers/{supplierId}',
+                'supplierAging',
+            )
+                ->whereNumber('supplierId')
+                ->name(
+                    'aging.suppliers.show',
+                );
+
+            Route::get(
+                '/supplier-statement',
+                'supplierStatement',
+            )->name(
+                'supplier-statement',
+            );
+        });
+
 });
 
 /*
