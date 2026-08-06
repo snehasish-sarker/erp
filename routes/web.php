@@ -27,6 +27,7 @@ use App\Http\Controllers\Purchasing\PurchaseOrderController;
 use App\Http\Controllers\Purchasing\PurchaseReturnController;
 use App\Http\Controllers\Purchasing\SupplierDebitNoteController;
 use App\Http\Controllers\Purchasing\SupplierInvoiceController;
+use App\Http\Controllers\Sales\SalesOrderController;
 use App\Http\Controllers\Settings\CompanySettingsController;
 use App\Http\Controllers\Settings\DocumentSequenceController;
 use App\Models\User;
@@ -420,10 +421,6 @@ Route::middleware([
             ->middleware('permission:accounting_periods.generate')
             ->name('accounting-periods.store');
 
-        /*
-         * Fixed period action routes must stay before the fiscal-year show
-         * route to prevent "periods" being interpreted as a fiscal-year ID.
-         */
         Route::patch(
             '/accounting-periods/periods/{accountingPeriod}/close',
             [AccountingPeriodController::class, 'close'],
@@ -510,9 +507,6 @@ Route::middleware([
             [UserNotificationController::class, 'index'],
         )->name('notifications.index');
 
-        /*
-         * Keep this fixed route before the notification model route.
-         */
         Route::patch(
             '/notifications/read-all',
             [UserNotificationController::class, 'markAllRead'],
@@ -998,6 +992,86 @@ Route::middleware([
 
     /*
     |--------------------------------------------------------------------------
+    | Sales Orders
+    |--------------------------------------------------------------------------
+    */
+
+    Route::prefix('erp/sales-orders')
+        ->name('sales-orders.')
+        ->controller(SalesOrderController::class)
+        ->group(function (): void {
+            Route::get('/', 'index')
+                ->middleware(
+                    'permission:sales_orders.view',
+                )
+                ->name('index');
+
+            Route::get('/create', 'create')
+                ->middleware(
+                    'permission:sales_orders.create',
+                )
+                ->name('create');
+
+            Route::post('/', 'store')
+                ->middleware(
+                    'permission:sales_orders.create',
+                )
+                ->name('store');
+
+            Route::get('/{salesOrder}', 'show')
+                ->middleware(
+                    'permission:sales_orders.view',
+                )
+                ->name('show');
+
+            Route::get('/{salesOrder}/edit', 'edit')
+                ->middleware(
+                    'permission:sales_orders.update',
+                )
+                ->name('edit');
+
+            Route::put('/{salesOrder}', 'update')
+                ->middleware(
+                    'permission:sales_orders.update',
+                )
+                ->name('update');
+
+            Route::delete('/{salesOrder}', 'destroy')
+                ->middleware(
+                    'permission:sales_orders.delete',
+                )
+                ->name('destroy');
+
+            Route::post('/{salesOrder}/submit', 'submit')
+                ->middleware(
+                    'permission:sales_orders.submit',
+                )
+                ->name('submit');
+
+            Route::post(
+                '/{salesOrder}/return-to-draft',
+                'returnToDraft',
+            )
+                ->middleware(
+                    'permission:sales_orders.update',
+                )
+                ->name('return-to-draft');
+
+            Route::post('/{salesOrder}/approve', 'approve')
+                ->middleware(
+                    'permission:sales_orders.approve',
+                )
+                ->name('approve');
+
+            Route::post('/{salesOrder}/cancel', 'cancel')
+                ->middleware(
+                    'permission:sales_orders.cancel',
+                )
+                ->name('cancel');
+        });
+
+    /*
+    |--------------------------------------------------------------------------
     | Goods Receipts
     |--------------------------------------------------------------------------
     */
@@ -1453,7 +1527,7 @@ Route::middleware([
                 ->name('reverse');
         });
 
-            /*
+    /*
     |--------------------------------------------------------------------------
     | Supplier Payments
     |--------------------------------------------------------------------------
@@ -1574,7 +1648,7 @@ Route::middleware([
                 ->name('reverse');
         });
 
-            /*
+    /*
     |--------------------------------------------------------------------------
     | Accounts Payable Reports
     |--------------------------------------------------------------------------
@@ -1610,7 +1684,6 @@ Route::middleware([
                 'supplier-statement',
             );
         });
-
 });
 
 /*

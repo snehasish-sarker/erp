@@ -180,6 +180,16 @@ final class PermissionSeeder extends Seeder
         'customer_payments.post',
         'customer_payments.reverse',
 
+        'customer_receipts.view',
+        'customer_receipts.create',
+        'customer_receipts.update',
+        'customer_receipts.delete',
+        'customer_receipts.submit',
+        'customer_receipts.approve',
+        'customer_receipts.cancel',
+        'customer_receipts.post',
+        'customer_receipts.reverse',
+
         'supplier_payments.view',
         'supplier_payments.create',
         'supplier_payments.update',
@@ -328,6 +338,11 @@ final class PermissionSeeder extends Seeder
                 'inventory.view_cost',
 
                 'customer_payments.view',
+
+                'customer_receipts.view',
+                'customer_receipts.create',
+                'customer_receipts.submit',
+
                 'supplier_payments.view',
                 'expenses.view',
 
@@ -490,6 +505,11 @@ final class PermissionSeeder extends Seeder
 
                 'customer_payments.view',
 
+                'customer_receipts.view',
+                'customer_receipts.create',
+                'customer_receipts.submit',
+                'customer_receipts.approve',
+
                 'reports.sales',
                 'reports.receivables',
                 'reports.profit',
@@ -536,6 +556,16 @@ final class PermissionSeeder extends Seeder
                 'customer_payments.create',
                 'customer_payments.post',
                 'customer_payments.reverse',
+
+                'customer_receipts.view',
+                'customer_receipts.create',
+                'customer_receipts.update',
+                'customer_receipts.delete',
+                'customer_receipts.submit',
+                'customer_receipts.approve',
+                'customer_receipts.cancel',
+                'customer_receipts.post',
+                'customer_receipts.reverse',
 
                 'supplier_payments.view',
                 'supplier_payments.create',
@@ -623,6 +653,7 @@ final class PermissionSeeder extends Seeder
                 'inventory.view_cost',
 
                 'customer_payments.view',
+                'customer_receipts.view',
                 'supplier_payments.view',
 
                 'accounts.view',

@@ -241,6 +241,16 @@ const menuGroups: MenuGroup[] = [
                         path: '/erp/sales-invoices',
                         permission: 'sales_invoices.view',
                     },
+                    {
+                        name: 'Sales Returns',
+                        path: '/erp/sales-returns',
+                        permission: 'sales_returns.view',
+                    },
+                    {
+                        name: 'Customer Receipts',
+                        path: '/erp/customer-receipts',
+                        permission: 'customer_receipts.view',
+                    },
                 ],
             },
             {
@@ -291,6 +301,40 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-payable.supplier-statement',
                         ),
                         permission: 'reports.payables',
+                    },
+                ],
+            },
+            {
+                name: 'Accounts Receivable',
+                icon: BarChartIcon,
+                subItems: [
+                    {
+                        name: 'AR Aging',
+                        path: namedPath(
+                            'reports.accounts-receivable.aging',
+                        ),
+                        permission: 'reports.receivables',
+                    },
+                    {
+                        name: 'Customer Statement',
+                        path: namedPath(
+                            'reports.accounts-receivable.customer-statement',
+                        ),
+                        permission: 'reports.receivables',
+                    },
+                    {
+                        name: 'Open Invoices',
+                        path: namedPath(
+                            'reports.accounts-receivable.open-invoices',
+                        ),
+                        permission: 'reports.receivables',
+                    },
+                    {
+                        name: 'Overdue Invoices',
+                        path: namedPath(
+                            'reports.accounts-receivable.overdue-invoices',
+                        ),
+                        permission: 'reports.receivables',
                     },
                 ],
             },

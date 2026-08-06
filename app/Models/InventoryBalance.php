@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToTenant;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +15,8 @@ final class InventoryBalance extends Model
 {
     use BelongsToTenant;
     use HasFactory;
+
+    private const SCALE = 6;
 
     /**
      * @var list<string>
@@ -23,6 +27,7 @@ final class InventoryBalance extends Model
         'product_id',
         'unit_id',
         'quantity_on_hand',
+        'quantity_reserved',
         'inventory_value',
         'average_unit_cost',
         'version',
@@ -78,6 +83,23 @@ final class InventoryBalance extends Model
         );
     }
 
+    public function availableQuantity(): string
+    {
+        return BigDecimal::of(
+            (string) $this->quantity_on_hand,
+        )
+            ->minus(
+                BigDecimal::of(
+                    (string) $this->quantity_reserved,
+                ),
+            )
+            ->toScale(
+                self::SCALE,
+                RoundingMode::HALF_UP,
+            )
+            ->__toString();
+    }
+
     /**
      * @return array<string, string>
      */
@@ -90,6 +112,7 @@ final class InventoryBalance extends Model
             'product_id' => 'integer',
             'unit_id' => 'integer',
             'quantity_on_hand' => 'decimal:6',
+            'quantity_reserved' => 'decimal:6',
             'inventory_value' => 'decimal:6',
             'average_unit_cost' => 'decimal:6',
             'version' => 'integer',

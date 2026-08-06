@@ -43,7 +43,7 @@ export interface AuditLogExportFilters {
 
 export interface ExportRequestFormData {
     export_type: string;
-    format: 'csv';
+    format: 'csv' | 'xlsx';
     filters: AuditLogExportFilters;
 }
 
@@ -53,7 +53,7 @@ export interface ExportRequestRecord {
     name: string;
     export_type: string;
     export_type_label: string;
-    format: 'csv';
+    format: 'csv' | 'xlsx';
     filters: Record<string, unknown>;
     status: ExportRequestStatus;
     progress_percent: number;

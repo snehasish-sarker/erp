@@ -318,6 +318,17 @@ final class DefaultChartOfAccounts
             'description' => 'Expenses recognized before payment or supplier invoicing.',
         ],
         [
+            'code' => '2132',
+            'name' => 'Customer Advances',
+            'parent_code' => '2130',
+            'account_type' => 'liability',
+            'account_subtype' => 'customer_advances',
+            'system_key' => 'customer_advances',
+            'is_group' => false,
+            'allow_manual_posting' => false,
+            'description' => 'Protected customer-subledger liability for receipts collected before receivable settlement.',
+        ],
+        [
             'code' => '2200',
             'name' => 'Non-current Liabilities',
             'parent_code' => '2000',

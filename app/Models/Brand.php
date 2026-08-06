@@ -8,11 +8,10 @@ use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-final class Brand extends Model
+final class Branch extends Model
 {
     use Auditable;
     use BelongsToTenant;
@@ -25,44 +24,95 @@ final class Brand extends Model
     protected $fillable = [
         'name',
         'code',
-        'slug',
-        'website_url',
-        'description',
-        'sort_order',
         'status',
+        'email',
+        'phone',
+        'address',
     ];
 
     /**
-     * @return BelongsTo<Tenant, $this>
+     * @return HasMany<Warehouse, $this>
      */
-    public function tenant(): BelongsTo
+    public function warehouses(): HasMany
     {
-        return $this->belongsTo(
-            Tenant::class,
+        return $this->hasMany(Warehouse::class);
+    }
+
+    /**
+     * @return HasMany<User, $this>
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    /**
+     * @return HasMany<DocumentSequence, $this>
+     */
+    public function documentSequences(): HasMany
+    {
+        return $this->hasMany(DocumentSequence::class);
+    }
+
+    /**
+     * @return HasMany<ProductBranchSetting, $this>
+     */
+    public function productBranchSettings(): HasMany
+    {
+        return $this->hasMany(
+            ProductBranchSetting::class,
         );
     }
 
-    public function isActive(): bool
+    /**
+     * @return HasMany<ProductWarehouseSetting, $this>
+     */
+    public function productWarehouseSettings(): HasMany
     {
-        return $this->status === 'active';
+        return $this->hasMany(
+            ProductWarehouseSetting::class,
+        );
     }
 
     /**
-     * @return array<string, string>
+     * @return HasMany<PurchaseOrder, $this>
      */
-    protected function casts(): array
+    public function purchaseOrders(): HasMany
     {
-        return [
-            'tenant_id' => 'integer',
-            'sort_order' => 'integer',
-        ];
+        return $this->hasMany(
+            PurchaseOrder::class,
+        );
     }
 
     /**
-     * @return HasMany<Product, $this>
+     * @return HasMany<SalesOrder, $this>
      */
-    public function products(): HasMany
+    public function salesOrders(): HasMany
     {
-        return $this->hasMany(Product::class);
+        return $this->hasMany(
+            SalesOrder::class,
+        );
+    }
+
+    /**
+     * @return HasMany<JournalEntry, $this>
+     */
+    public function journalEntries(): HasMany
+    {
+        return $this->hasMany(
+            JournalEntry::class,
+        )
+            ->orderByDesc('posting_date')
+            ->orderByDesc('id');
+    }
+
+    /**
+     * @return HasMany<JournalEntryLine, $this>
+     */
+    public function journalEntryLines(): HasMany
+    {
+        return $this->hasMany(
+            JournalEntryLine::class,
+        )->orderBy('id');
     }
 }

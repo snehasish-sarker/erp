@@ -138,4 +138,14 @@ final class Product extends Model
             PurchaseOrderLine::class,
         );
     }
+
+    /**
+     * @return HasMany<SalesOrderLine, $this>
+     */
+    public function salesOrderLines(): HasMany
+    {
+        return $this->hasMany(
+            SalesOrderLine::class,
+        );
+    }
 }

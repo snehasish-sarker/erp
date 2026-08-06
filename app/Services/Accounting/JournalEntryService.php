@@ -34,6 +34,9 @@ final class JournalEntryService
         'supplier_invoice' => 'supplier_invoice_reversal',
         'supplier_debit_note' => 'supplier_debit_note_reversal',
         'supplier_payment' => 'supplier_payment_reversal',
+        'customer_dispatch' => 'customer_dispatch_reversal',
+        'sales_invoice' => 'sales_invoice_reversal',
+        'customer_receipt' => 'customer_receipt_reversal',
         'inventory' => 'inventory_reversal',
     ];
 

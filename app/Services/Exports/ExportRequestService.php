@@ -75,7 +75,7 @@ final class ExportRequestService
             trim($format),
         );
 
-        if ($format !== 'csv') {
+        if (!in_array($format, ['csv', 'xlsx'], true)) {
             throw ValidationException::withMessages([
                 'format' => [
                     'The selected export format is not supported.',

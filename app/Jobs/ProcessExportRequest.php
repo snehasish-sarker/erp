@@ -26,6 +26,7 @@ use Illuminate\Support\Str;
 use LogicException;
 use RuntimeException;
 use Throwable;
+use ZipArchive;
 
 #[Tries(3)]
 #[Timeout(1200)]
@@ -149,13 +150,25 @@ final class ProcessExportRequest implements ShouldQueue
             $temporaryPath =
                 $this->createTemporaryFile();
 
-            $rowsExported = $this->writeCsv(
-                path: $temporaryPath,
-                definition: $definition,
-                filters: $filters,
-                requester: $requester,
-                totalRows: $totalRows,
-            );
+            $rowsExported = match ($exportRequest->format) {
+                'csv' => $this->writeCsv(
+                    path: $temporaryPath,
+                    definition: $definition,
+                    filters: $filters,
+                    requester: $requester,
+                    totalRows: $totalRows,
+                ),
+                'xlsx' => $this->writeXlsx(
+                    path: $temporaryPath,
+                    definition: $definition,
+                    filters: $filters,
+                    requester: $requester,
+                    totalRows: $totalRows,
+                ),
+                default => throw new LogicException(
+                    'The requested export format is unsupported.',
+                ),
+            };
 
             $fileName = $this->fileName(
                 exportRequest: $exportRequest,
@@ -165,7 +178,7 @@ final class ProcessExportRequest implements ShouldQueue
             $uploadedFile = new UploadedFile(
                 $temporaryPath,
                 $fileName,
-                'text/csv',
+                $this->mimeType($exportRequest->format),
                 null,
                 true,
             );
@@ -621,6 +634,310 @@ final class ProcessExportRequest implements ShouldQueue
                 : $value;
     }
 
+    /**
+     * @param array<string, mixed> $filters
+     */
+    private function writeXlsx(
+        string $path,
+        ExportDefinition $definition,
+        array $filters,
+        User $requester,
+        int $totalRows,
+    ): int {
+        if (!class_exists(ZipArchive::class)) {
+            throw new RuntimeException(
+                'The PHP Zip extension is required to create Excel exports.',
+            );
+        }
+
+        $sheetPath = tempnam(
+            sys_get_temp_dir(),
+            'erp-export-sheet-',
+        );
+
+        if (!is_string($sheetPath) || $sheetPath === '') {
+            throw new RuntimeException(
+                'A temporary Excel worksheet could not be created.',
+            );
+        }
+
+        $stream = fopen($sheetPath, 'wb');
+
+        if ($stream === false) {
+            @unlink($sheetPath);
+
+            throw new RuntimeException(
+                'The temporary Excel worksheet could not be opened.',
+            );
+        }
+
+        $rowsExported = 0;
+
+        try {
+            fwrite(
+                $stream,
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                .'<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+                .'<sheetData>',
+            );
+
+            $rowNumber = 1;
+            $this->writeXlsxRow(
+                stream: $stream,
+                rowNumber: $rowNumber,
+                values: $definition->headings(),
+                heading: true,
+            );
+
+            $lastProgress = 1;
+
+            foreach ($definition->rows($filters, $requester) as $model) {
+                $rowNumber++;
+
+                $this->writeXlsxRow(
+                    stream: $stream,
+                    rowNumber: $rowNumber,
+                    values: $definition->mapRow($model),
+                    heading: false,
+                );
+
+                $rowsExported++;
+
+                $progress = $totalRows === 0
+                    ? 95
+                    : min(
+                        95,
+                        max(
+                            1,
+                            (int) floor(
+                                ($rowsExported / $totalRows) * 95,
+                            ),
+                        ),
+                    );
+
+                if (
+                    $progress >= $lastProgress + 5
+                    || $rowsExported === $totalRows
+                ) {
+                    $this->updateProgress(
+                        rowsExported: $rowsExported,
+                        progress: $progress,
+                    );
+
+                    $lastProgress = $progress;
+                }
+            }
+
+            fwrite($stream, '</sheetData></worksheet>');
+        } finally {
+            fclose($stream);
+        }
+
+        if ($rowsExported === 0) {
+            $this->updateProgress(
+                rowsExported: 0,
+                progress: 95,
+            );
+        }
+
+        if (is_file($path)) {
+            @unlink($path);
+        }
+
+        $zip = new ZipArchive();
+        $opened = $zip->open(
+            $path,
+            ZipArchive::CREATE | ZipArchive::OVERWRITE,
+        );
+
+        if ($opened !== true) {
+            @unlink($sheetPath);
+
+            throw new RuntimeException(
+                'The Excel export archive could not be created.',
+            );
+        }
+
+        try {
+            $zip->addFromString(
+                '[Content_Types].xml',
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+                .'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+                .'<Default Extension="xml" ContentType="application/xml"/>'
+                .'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+                .'<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+                .'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+                .'<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
+                .'<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>'
+                .'</Types>',
+            );
+
+            $zip->addFromString(
+                '_rels/.rels',
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                .'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+                .'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>'
+                .'<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>'
+                .'</Relationships>',
+            );
+
+            $zip->addFromString(
+                'xl/workbook.xml',
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+                .'<sheets><sheet name="Export" sheetId="1" r:id="rId1"/></sheets>'
+                .'</workbook>',
+            );
+
+            $zip->addFromString(
+                'xl/_rels/workbook.xml.rels',
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                .'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+                .'<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+                .'</Relationships>',
+            );
+
+            $zip->addFromString(
+                'xl/styles.xml',
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+                .'<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
+                .'<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>'
+                .'<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+                .'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+                .'<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>'
+                .'</styleSheet>',
+            );
+
+            $zip->addFromString(
+                'docProps/core.xml',
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/">'
+                .'<dc:creator>ERP</dc:creator><cp:lastModifiedBy>ERP</cp:lastModifiedBy>'
+                .'</cp:coreProperties>',
+            );
+
+            $zip->addFromString(
+                'docProps/app.xml',
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                .'<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">'
+                .'<Application>ERP</Application>'
+                .'</Properties>',
+            );
+
+            if (!$zip->addFile($sheetPath, 'xl/worksheets/sheet1.xml')) {
+                throw new RuntimeException(
+                    'The Excel worksheet could not be added to the export archive.',
+                );
+            }
+        } finally {
+            $zip->close();
+            @unlink($sheetPath);
+        }
+
+        return $rowsExported;
+    }
+
+    /**
+     * @param resource $stream
+     * @param list<string|int|float|null> $values
+     */
+    private function writeXlsxRow(
+        $stream,
+        int $rowNumber,
+        array $values,
+        bool $heading,
+    ): void {
+        fwrite($stream, '<row r="'.$rowNumber.'">');
+
+        foreach (array_values($values) as $columnIndex => $value) {
+            $reference = $this->xlsxColumnName($columnIndex + 1).$rowNumber;
+
+            if (is_int($value) || is_float($value)) {
+                fwrite(
+                    $stream,
+                    '<c r="'.$reference.'"><v>'.$value.'</v></c>',
+                );
+
+                continue;
+            }
+
+            $text = $value === null ? '' : (string) $value;
+            $numericValue = $heading
+                ? null
+                : $this->xlsxNumericValue($text);
+
+            if ($numericValue !== null) {
+                fwrite(
+                    $stream,
+                    '<c r="'.$reference.'"><v>'.$numericValue.'</v></c>',
+                );
+
+                continue;
+            }
+
+            fwrite(
+                $stream,
+                '<c r="'.$reference.'" t="inlineStr" s="'
+                .($heading ? '1' : '0')
+                .'"><is><t xml:space="preserve">'
+                .htmlspecialchars(
+                    $text,
+                    ENT_XML1 | ENT_QUOTES,
+                    'UTF-8',
+                )
+                .'</t></is></c>',
+            );
+        }
+
+        fwrite($stream, '</row>');
+    }
+
+
+    private function xlsxNumericValue(string $value): ?string
+    {
+        $trimmed = trim($value);
+
+        if (
+            $trimmed === ''
+            || preg_match(
+                '/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/',
+                $trimmed,
+            ) !== 1
+        ) {
+            return null;
+        }
+
+        $unsigned = ltrim($trimmed, '-');
+
+        if (
+            strlen($unsigned) > 1
+            && $unsigned[0] === '0'
+            && !str_starts_with($unsigned, '0.')
+        ) {
+            return null;
+        }
+
+        return $trimmed;
+    }
+
+    private function xlsxColumnName(int $column): string
+    {
+        $name = '';
+
+        while ($column > 0) {
+            $column--;
+            $name = chr(65 + ($column % 26)).$name;
+            $column = intdiv($column, 26);
+        }
+
+        return $name;
+    }
+
     private function updateProgress(
         int $rowsExported,
         int $progress,
@@ -752,8 +1069,20 @@ final class ProcessExportRequest implements ShouldQueue
             )
             ->format('Ymd-His');
 
+        $extension = $exportRequest->format === 'xlsx'
+            ? 'xlsx'
+            : 'csv';
+
         return Str::slug(
             $exportRequest->name,
-        )."-{$timestamp}.csv";
+        )."-{$timestamp}.{$extension}";
+    }
+
+    private function mimeType(string $format): string
+    {
+        return match ($format) {
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            default => 'text/csv',
+        };
     }
 }

@@ -406,6 +406,10 @@ onBeforeUnmount((): void => {
                             <option value="csv">
                                 CSV
                             </option>
+
+                            <option value="xlsx">
+                                Excel (XLSX)
+                            </option>
                         </select>
                     </div>
                 </div>

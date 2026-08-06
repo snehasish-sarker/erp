@@ -35,6 +35,7 @@ final class StoreExportRequest extends FormRequest
                 'string',
                 Rule::in([
                     'csv',
+                    'xlsx',
                 ]),
             ],
             'filters' => [
