@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Accounting\CustomerArAdjustmentAccountingGateway;
+use App\Contracts\Accounting\CustomerCreditApplicationAccountingGateway;
 use App\Contracts\Accounting\CustomerCreditNoteAccountingGateway;
+use App\Contracts\Accounting\CustomerRefundAccountingGateway;
 use App\Contracts\Accounting\CustomerDispatchAccountingGateway;
 use App\Contracts\Accounting\CustomerReceiptAccountingGateway;
 use App\Contracts\Accounting\GoodsReceiptAccountingGateway;
@@ -18,7 +21,10 @@ use App\Models\AccountingPeriod;
 use App\Models\AuditLog;
 use App\Models\Brand;
 use App\Models\Customer;
+use App\Models\CustomerArAdjustment;
+use App\Models\CustomerCreditApplication;
 use App\Models\CustomerCreditNote;
+use App\Models\CustomerRefund;
 use App\Models\CustomerDispatch;
 use App\Models\CustomerReceipt;
 use App\Models\DocumentSequence;
@@ -48,7 +54,10 @@ use App\Policies\AccountPolicy;
 use App\Policies\AccountingPeriodPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\BrandPolicy;
+use App\Policies\CustomerArAdjustmentPolicy;
+use App\Policies\CustomerCreditApplicationPolicy;
 use App\Policies\CustomerCreditNotePolicy;
+use App\Policies\CustomerRefundPolicy;
 use App\Policies\CustomerDispatchPolicy;
 use App\Policies\CustomerReceiptPolicy;
 use App\Policies\CustomerPolicy;
@@ -71,7 +80,10 @@ use App\Policies\SupplierPolicy;
 use App\Policies\TenantFilePolicy;
 use App\Policies\UnitPolicy;
 use App\Policies\UserNotificationPolicy;
+use App\Services\Accounting\GeneralLedgerCustomerArAdjustmentAccountingGateway;
+use App\Services\Accounting\GeneralLedgerCustomerCreditApplicationAccountingGateway;
 use App\Services\Accounting\GeneralLedgerCustomerCreditNoteAccountingGateway;
+use App\Services\Accounting\GeneralLedgerCustomerRefundAccountingGateway;
 use App\Services\Accounting\GeneralLedgerCustomerDispatchAccountingGateway;
 use App\Services\Accounting\GeneralLedgerCustomerReceiptAccountingGateway;
 use App\Services\Accounting\GeneralLedgerGoodsReceiptAccountingGateway;
@@ -105,8 +117,23 @@ final class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
+            CustomerArAdjustmentAccountingGateway::class,
+            GeneralLedgerCustomerArAdjustmentAccountingGateway::class,
+        );
+
+        $this->app->bind(
+            CustomerCreditApplicationAccountingGateway::class,
+            GeneralLedgerCustomerCreditApplicationAccountingGateway::class,
+        );
+
+        $this->app->bind(
             CustomerCreditNoteAccountingGateway::class,
             GeneralLedgerCustomerCreditNoteAccountingGateway::class,
+        );
+
+        $this->app->bind(
+            CustomerRefundAccountingGateway::class,
+            GeneralLedgerCustomerRefundAccountingGateway::class,
         );
 
         $this->app->bind(
@@ -211,7 +238,10 @@ final class AppServiceProvider extends ServiceProvider
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
+        Gate::policy(CustomerArAdjustment::class, CustomerArAdjustmentPolicy::class);
+        Gate::policy(CustomerCreditApplication::class, CustomerCreditApplicationPolicy::class);
         Gate::policy(CustomerCreditNote::class, CustomerCreditNotePolicy::class);
+        Gate::policy(CustomerRefund::class, CustomerRefundPolicy::class);
         Gate::policy(CustomerReceipt::class, CustomerReceiptPolicy::class);
         Gate::policy(PurchaseOrder::class, PurchaseOrderPolicy::class);
         Gate::policy(SalesOrder::class, SalesOrderPolicy::class);

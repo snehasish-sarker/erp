@@ -127,6 +127,19 @@ final class CustomerOpenItem extends Model
         return $this->item_type === 'invoice';
     }
 
+    public function isReceivable(): bool
+    {
+        return in_array(
+            $this->item_type,
+            [
+                'invoice',
+                'refund',
+                'adjustment_debit',
+            ],
+            true,
+        );
+    }
+
     public function isCredit(): bool
     {
         return in_array(
@@ -134,6 +147,7 @@ final class CustomerOpenItem extends Model
             [
                 'credit',
                 'receipt',
+                'adjustment_credit',
             ],
             true,
         );

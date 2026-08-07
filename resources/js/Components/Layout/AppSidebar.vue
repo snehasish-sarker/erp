@@ -251,6 +251,62 @@ const menuGroups: MenuGroup[] = [
                         path: '/erp/customer-receipts',
                         permission: 'customer_receipts.view',
                     },
+                    {
+                        name: 'Customer Credits',
+                        path: '/erp/customer-credits',
+                        permission: 'customer_credits.view',
+                    },
+                    {
+                        name: 'Credit Applications',
+                        path: '/erp/customer-credit-applications',
+                        permission: 'customer_credit_applications.view',
+                    },
+                    {
+                        name: 'Customer Refunds',
+                        path: '/erp/customer-refunds',
+                        permission: 'customer_refunds.view',
+                    },
+                    {
+                        name: 'AR Adjustments',
+                        path: '/erp/customer-ar-adjustments',
+                        permission: 'customer_ar_adjustments.view',
+                    },
+                ],
+            },
+            {
+                name: 'Treasury',
+                icon: BarChartIcon,
+                subItems: [
+                    {
+                        name: 'Treasury Dashboard',
+                        path: '/erp/treasury',
+                        permission: 'treasury.view',
+                    },
+                    {
+                        name: 'Transaction Register',
+                        path: '/erp/treasury/register',
+                        permission: 'treasury.view',
+                    },
+                    {
+                        name: 'Transfers',
+                        path: '/erp/treasury/transfers',
+                        permission: 'treasury_transfers.view',
+                    },
+                    {
+                        name: 'Adjustments',
+                        path: '/erp/treasury/adjustments',
+                        permission: 'treasury_adjustments.view',
+                    },
+                    {
+                        name: 'Bank Statements',
+                        path: '/erp/treasury/bank-statements',
+                        permission: 'bank_statements.view',
+                    },
+                    {
+                        name: 'Bank Reconciliations',
+                        path: '/erp/treasury/bank-reconciliations',
+                        permission: 'bank_reconciliations.view',
+                    },
                 ],
             },
             {

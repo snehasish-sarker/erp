@@ -453,10 +453,10 @@ final class CustomerOpenItemAllocationService
             );
         }
 
-        if (!$receivableOpenItem->isInvoice()) {
+        if (!$receivableOpenItem->isReceivable()) {
             throw ValidationException::withMessages([
                 'receivable_open_item_id' => [
-                    'The selected receivable item must be a Sales Invoice.',
+                    'The selected item must be an open customer receivable.',
                 ],
             ]);
         }

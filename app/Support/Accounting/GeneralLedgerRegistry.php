@@ -37,6 +37,11 @@ final class GeneralLedgerRegistry
             'account_type' => 'asset',
             'normal_balance' => 'debit',
         ],
+        'cash_in_transit' => [
+            'label' => 'Cash in Transit',
+            'account_type' => 'asset',
+            'normal_balance' => 'debit',
+        ],
         'accounts_receivable' => [
             'label' => 'Accounts Receivable',
             'account_type' => 'asset',
@@ -321,6 +326,24 @@ final class GeneralLedgerRegistry
             'account_subtype' => 'bank',
             'control_type' => 'bank',
         ],
+        'treasury_clearing' => [
+            'label' => 'Treasury Clearing',
+            'account_type' => 'asset',
+            'account_subtype' => 'cash_in_transit',
+            'control_type' => null,
+        ],
+        'bank_charges' => [
+            'label' => 'Bank Charges',
+            'account_type' => 'expense',
+            'account_subtype' => 'finance_cost',
+            'control_type' => null,
+        ],
+        'bank_interest_income' => [
+            'label' => 'Bank Interest Income',
+            'account_type' => 'revenue',
+            'account_subtype' => 'other_income',
+            'control_type' => null,
+        ],
     ];
 
     /**
@@ -336,6 +359,16 @@ final class GeneralLedgerRegistry
         'supplier_payment_reversal' => 'Supplier Payment Reversal',
         'customer_receipt' => 'Customer Receipt',
         'customer_receipt_reversal' => 'Customer Receipt Reversal',
+        'customer_credit_application' => 'Customer Credit Application',
+        'customer_credit_application_reversal' => 'Customer Credit Application Reversal',
+        'customer_refund' => 'Customer Refund',
+        'customer_refund_reversal' => 'Customer Refund Reversal',
+        'customer_ar_adjustment' => 'Customer AR Adjustment',
+        'customer_ar_adjustment_reversal' => 'Customer AR Adjustment Reversal',
+        'treasury_transfer' => 'Treasury Transfer',
+        'treasury_transfer_reversal' => 'Treasury Transfer Reversal',
+        'treasury_adjustment' => 'Treasury Adjustment',
+        'treasury_adjustment_reversal' => 'Treasury Adjustment Reversal',
         'customer_dispatch' => 'Customer Dispatch',
         'customer_dispatch_reversal' => 'Customer Dispatch Reversal',
         'sales_invoice' => 'Sales Invoice',

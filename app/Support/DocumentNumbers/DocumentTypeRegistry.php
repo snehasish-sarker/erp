@@ -69,6 +69,18 @@ final class DocumentTypeRegistry
             'label' => 'Customer Receipt',
             'default_prefix' => 'CR-{YYYY}-',
         ],
+        'customer_credit_application' => [
+            'label' => 'Customer Credit Application',
+            'default_prefix' => 'CCA-{YYYY}-',
+        ],
+        'customer_refund' => [
+            'label' => 'Customer Refund',
+            'default_prefix' => 'CRF-{YYYY}-',
+        ],
+        'customer_ar_adjustment' => [
+            'label' => 'Customer AR Adjustment',
+            'default_prefix' => 'ARA-{YYYY}-',
+        ],
         'supplier_payment' => [
             'label' => 'Supplier Payment',
             'default_prefix' => 'SP-{YYYY}-',
