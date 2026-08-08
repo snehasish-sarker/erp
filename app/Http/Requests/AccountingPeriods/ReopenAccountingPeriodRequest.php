@@ -28,6 +28,8 @@ final class ReopenAccountingPeriodRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return [
+            'reason' => ['required', 'string', 'min:10', 'max:500'],
+        ];
     }
 }

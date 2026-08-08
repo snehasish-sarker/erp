@@ -133,6 +133,16 @@ final class CustomerOpenItemAllocation extends Model
         return $this->morphTo();
     }
 
+    public function isApplied(): bool
+    {
+        return $this->status === 'applied';
+    }
+
+    public function isReversed(): bool
+    {
+        return $this->status === 'reversed';
+    }
+
     /**
      * @return array<string, string>
      */

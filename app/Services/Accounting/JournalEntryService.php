@@ -37,7 +37,10 @@ final class JournalEntryService
         'customer_dispatch' => 'customer_dispatch_reversal',
         'sales_invoice' => 'sales_invoice_reversal',
         'customer_receipt' => 'customer_receipt_reversal',
+        'treasury_transfer' => 'treasury_transfer_reversal',
+        'treasury_adjustment' => 'treasury_adjustment_reversal',
         'inventory' => 'inventory_reversal',
+        'year_end_closing' => 'year_end_closing_reversal',
     ];
 
     public function __construct(
@@ -684,6 +687,7 @@ final class JournalEntryService
         string $postingKey,
         User $actor,
         ?string $sourceDocumentNumber = null,
+        bool $requireActiveBranch = true,
     ): JournalEntry {
         $this->requireTransaction();
 
@@ -723,7 +727,7 @@ final class JournalEntryService
         $branch = $this->accessibleBranch(
             actor: $actor,
             branchId: $branchId,
-            requireActive: true,
+            requireActive: $requireActiveBranch,
         );
 
         $sourceBranchId = $source->getAttribute(

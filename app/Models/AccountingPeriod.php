@@ -110,6 +110,17 @@ final class AccountingPeriod extends Model
         )->orderBy('id');
     }
 
+
+    /**
+     * @return HasMany<PeriodCloseRun, $this>
+     */
+    public function closeRuns(): HasMany
+    {
+        return $this->hasMany(
+            PeriodCloseRun::class,
+        )->orderByDesc('run_number');
+    }
+
     /**
      * @return HasMany<JournalEntry, $this>
      */

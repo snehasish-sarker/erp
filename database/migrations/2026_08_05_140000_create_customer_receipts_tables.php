@@ -47,12 +47,15 @@ return new class extends Migration
                 )->nullable();
 
                 $table->date('receipt_date');
+
                 $table->date('posting_date');
 
-                $table->char('currency_code', 3)
-                    ->comment(
-                        'ISO 4217 receipt currency',
-                    );
+                $table->char(
+                    'currency_code',
+                    3,
+                )->comment(
+                    'ISO 4217 receipt currency',
+                );
 
                 $table->decimal(
                     'exchange_rate',
@@ -81,9 +84,6 @@ return new class extends Migration
                     'cheque_date',
                 )->nullable();
 
-                /*
-                 * Immutable customer and settlement-account snapshots.
-                 */
                 $table->string(
                     'customer_name',
                     160,
@@ -131,10 +131,6 @@ return new class extends Migration
                     6,
                 )->default(0);
 
-                /*
-                 * Base-currency amounts are finalized by the accounting
-                 * gateway at posting time and retained for exact reversal.
-                 */
                 $table->decimal(
                     'base_total_amount',
                     20,
@@ -246,6 +242,7 @@ return new class extends Migration
                 )->nullable();
 
                 $table->timestamps();
+
                 $table->softDeletes();
 
                 $table->unique(
@@ -308,31 +305,49 @@ return new class extends Migration
                 $table->foreignId(
                     'customer_receipt_id',
                 )
-                    ->constrained('customer_receipts')
+                    ->constrained(
+                        'customer_receipts',
+                    )
                     ->cascadeOnDelete();
 
                 $table->foreignId(
                     'customer_open_item_id',
                 )
-                    ->constrained('customer_open_items')
+                    ->constrained(
+                        'customer_open_items',
+                    )
                     ->restrictOnDelete();
 
                 $table->foreignId(
                     'sales_invoice_id',
                 )
-                    ->constrained('sales_invoices')
+                    ->constrained(
+                        'sales_invoices',
+                    )
                     ->restrictOnDelete();
 
                 /*
-                 * The real AR allocation is linked only when the receipt is
-                 * posted. Draft intent rows must not mutate open items.
+                 * Keep the column definition simple here.
+                 *
+                 * UNIQUE and FOREIGN KEY constraints are defined separately
+                 * below with short explicit names to stay within MySQL's
+                 * 64-character identifier limit.
                  */
                 $table->foreignId(
                     'customer_open_item_allocation_id',
+                )->nullable();
+
+                $table->unique(
+                    'customer_open_item_allocation_id',
+                    'cust_receipt_open_alloc_uq',
+                );
+
+                $table->foreign(
+                    'customer_open_item_allocation_id',
+                    'cust_receipt_open_alloc_fk',
                 )
-                    ->nullable()
-                    ->unique()
-                    ->constrained(
+                    ->references('id')
+                    ->on(
                         'customer_open_item_allocations',
                     )
                     ->restrictOnDelete();
@@ -350,7 +365,10 @@ return new class extends Migration
                     'invoice_due_date',
                 )->nullable();
 
-                $table->char('currency_code', 3);
+                $table->char(
+                    'currency_code',
+                    3,
+                );
 
                 $table->decimal(
                     'invoice_exchange_rate',

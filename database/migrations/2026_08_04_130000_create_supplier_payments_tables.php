@@ -47,12 +47,15 @@ return new class extends Migration
                 )->nullable();
 
                 $table->date('payment_date');
+
                 $table->date('posting_date');
 
-                $table->char('currency_code', 3)
-                    ->comment(
-                        'ISO 4217 payment currency',
-                    );
+                $table->char(
+                    'currency_code',
+                    3,
+                )->comment(
+                    'ISO 4217 payment currency',
+                );
 
                 $table->decimal(
                     'exchange_rate',
@@ -81,9 +84,6 @@ return new class extends Migration
                     'cheque_date',
                 )->nullable();
 
-                /*
-                 * Immutable supplier and settlement-account snapshots.
-                 */
                 $table->string(
                     'supplier_name',
                     160,
@@ -131,10 +131,6 @@ return new class extends Migration
                     6,
                 )->default(0);
 
-                /*
-                 * Base-currency amounts are finalized by the accounting
-                 * gateway at posting time and retained for exact reversal.
-                 */
                 $table->decimal(
                     'base_total_amount',
                     20,
@@ -246,6 +242,7 @@ return new class extends Migration
                 )->nullable();
 
                 $table->timestamps();
+
                 $table->softDeletes();
 
                 $table->unique(
@@ -308,31 +305,42 @@ return new class extends Migration
                 $table->foreignId(
                     'supplier_payment_id',
                 )
-                    ->constrained('supplier_payments')
+                    ->constrained(
+                        'supplier_payments',
+                    )
                     ->cascadeOnDelete();
 
                 $table->foreignId(
                     'supplier_open_item_id',
                 )
-                    ->constrained('supplier_open_items')
+                    ->constrained(
+                        'supplier_open_items',
+                    )
                     ->restrictOnDelete();
 
                 $table->foreignId(
                     'supplier_invoice_id',
                 )
-                    ->constrained('supplier_invoices')
+                    ->constrained(
+                        'supplier_invoices',
+                    )
                     ->restrictOnDelete();
 
-                /*
-                 * The real AP allocation is linked only when the payment is
-                 * posted. Draft intent rows must not mutate open items.
-                 */
                 $table->foreignId(
                     'supplier_open_item_allocation_id',
+                )->nullable();
+
+                $table->unique(
+                    'supplier_open_item_allocation_id',
+                    'supplier_pay_open_item_alloc_uq',
+                );
+
+                $table->foreign(
+                    'supplier_open_item_allocation_id',
+                    'supplier_pay_open_item_alloc_fk',
                 )
-                    ->nullable()
-                    ->unique()
-                    ->constrained(
+                    ->references('id')
+                    ->on(
                         'supplier_open_item_allocations',
                     )
                     ->restrictOnDelete();
@@ -350,7 +358,10 @@ return new class extends Migration
                     'invoice_due_date',
                 )->nullable();
 
-                $table->char('currency_code', 3);
+                $table->char(
+                    'currency_code',
+                    3,
+                );
 
                 $table->decimal(
                     'invoice_exchange_rate',

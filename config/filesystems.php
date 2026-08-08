@@ -46,6 +46,14 @@ return [
             'report' => true,
         ],
 
+        'operations_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/operations'),
+            'serve' => false,
+            'throw' => true,
+            'report' => true,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

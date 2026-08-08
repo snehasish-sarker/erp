@@ -34,41 +34,43 @@ final class AccountsReceivableReportController extends Controller
     }
 
     public function aging(
-        AccountsReceivableAgingRequest $request,
-    ): Response {
-        $actor = $this->actor($request);
+    AccountsReceivableAgingRequest $request,
+): Response {
+    $actor = $this->actor($request);
+    $filters = $request->validated();
 
-        return Inertia::render(
-            'Reports/AccountsReceivable/Aging',
-            [
-                'report' => $this->agingService->buildSummary(
-                    filters: $filters,
-                    actor: $actor,
-                ),
-                ...$this->reportOptions($actor),
-            ],
-        );
-    }
+    return Inertia::render(
+        'Reports/AccountsReceivable/Aging',
+        [
+            'report' => $this->agingService->buildSummary(
+                filters: $filters,
+                actor: $actor,
+            ),
+            ...$this->reportOptions($actor),
+        ],
+    );
+}
 
     public function customerAging(
-        AccountsReceivableAgingRequest $request,
-        string $customerId,
-    ): Response {
-        $actor = $this->actor($request);
-        $customer = $this->customerFromRoute($customerId);
+    AccountsReceivableAgingRequest $request,
+    string $customerId,
+): Response {
+    $actor = $this->actor($request);
+    $customer = $this->customerFromRoute($customerId);
+    $filters = $request->validated();
 
-        return Inertia::render(
-            'Reports/AccountsReceivable/CustomerAging',
-            [
-                'report' => $this->agingService->buildCustomerDetail(
-                    customer: $customer,
-                    filters: $filters,
-                    actor: $actor,
-                ),
-                ...$this->reportOptions($actor),
-            ],
-        );
-    }
+    return Inertia::render(
+        'Reports/AccountsReceivable/CustomerAging',
+        [
+            'report' => $this->agingService->buildCustomerDetail(
+                customer: $customer,
+                filters: $filters,
+                actor: $actor,
+            ),
+            ...$this->reportOptions($actor),
+        ],
+    );
+}
 
     public function customerStatement(
         CustomerStatementRequest $request,

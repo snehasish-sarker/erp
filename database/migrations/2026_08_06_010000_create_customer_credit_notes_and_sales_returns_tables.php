@@ -43,14 +43,6 @@ return new class extends Migration
         Schema::table(
             'sales_order_lines',
             function (Blueprint $table): void {
-                $table->decimal(
-                    'returned_quantity',
-                    20,
-                    6,
-                )
-                    ->default(0)
-                    ->after('invoiced_quantity');
-
                 $table->index(
                     [
                         'tenant_id',
@@ -97,19 +89,29 @@ return new class extends Migration
                 )
                     ->nullable()
                     ->unique()
-                    ->constrained('document_number_allocations')
+                    ->constrained(
+                        'document_number_allocations',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_ledger_entry_id')
+                $table->foreignId(
+                    'customer_ledger_entry_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('customer_ledger_entries')
+                    ->constrained(
+                        'customer_ledger_entries',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_open_item_id')
+                $table->foreignId(
+                    'customer_open_item_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('customer_open_items')
+                    ->constrained(
+                        'customer_open_items',
+                    )
                     ->restrictOnDelete();
 
                 $table->foreignId(
@@ -117,53 +119,93 @@ return new class extends Migration
                 )
                     ->nullable()
                     ->unique()
-                    ->constrained('customer_open_item_allocations')
+                    ->constrained(
+                        'customer_open_item_allocations',
+                    )
                     ->restrictOnDelete();
 
-                $table->string('credit_note_number', 160)
-                    ->nullable();
+                $table->string(
+                    'credit_note_number',
+                    160,
+                )->nullable();
 
                 /*
-                 * Only an editable credit note keeps this key. MySQL permits
-                 * multiple NULL values, so posted, reversed, and cancelled
-                 * documents do not block later partial credits.
+                 * Only an editable credit note keeps this key.
+                 * MySQL permits multiple NULL values, so posted,
+                 * reversed, and cancelled documents do not block
+                 * later partial credits.
                  */
-                $table->string('draft_key', 190)
+                $table->string(
+                    'draft_key',
+                    190,
+                )
                     ->nullable()
                     ->unique();
 
-                $table->date('credit_note_date');
-                $table->date('posting_date');
+                $table->date(
+                    'credit_note_date',
+                );
 
-                $table->string('sales_invoice_number', 160);
-                $table->string('sales_order_number', 160);
-                $table->string('customer_name', 160);
-                $table->string('customer_code', 60);
-                $table->string('customer_type', 30);
+                $table->date(
+                    'posting_date',
+                );
+
+                $table->string(
+                    'sales_invoice_number',
+                    160,
+                );
+
+                $table->string(
+                    'sales_order_number',
+                    160,
+                );
+
+                $table->string(
+                    'customer_name',
+                    160,
+                );
+
+                $table->string(
+                    'customer_code',
+                    60,
+                );
+
+                $table->string(
+                    'customer_type',
+                    30,
+                );
 
                 $table->string(
                     'customer_contact_person',
                     120,
                 )->nullable();
 
-                $table->string('customer_email')
-                    ->nullable();
+                $table->string(
+                    'customer_email',
+                )->nullable();
 
-                $table->string('customer_phone', 40)
-                    ->nullable();
+                $table->string(
+                    'customer_phone',
+                    40,
+                )->nullable();
 
                 $table->string(
                     'customer_tax_number',
                     100,
                 )->nullable();
 
-                $table->text('billing_address')
-                    ->nullable();
+                $table->text(
+                    'billing_address',
+                )->nullable();
 
-                $table->text('return_address')
-                    ->nullable();
+                $table->text(
+                    'return_address',
+                )->nullable();
 
-                $table->char('currency_code', 3);
+                $table->char(
+                    'currency_code',
+                    3,
+                );
 
                 $table->decimal(
                     'exchange_rate',
@@ -225,45 +267,66 @@ return new class extends Migration
                     6,
                 )->default(0);
 
-                $table->string('reason', 500);
-                $table->text('notes')->nullable();
+                $table->string(
+                    'reason',
+                    500,
+                );
 
-                $table->string('status', 30)
+                $table->text(
+                    'notes',
+                )->nullable();
+
+                $table->string(
+                    'status',
+                    30,
+                )
                     ->default('draft')
                     ->comment(
                         'draft, submitted, approved, posted, reversed, cancelled',
                     );
 
-                $table->unsignedInteger('revision')
-                    ->default(1);
+                $table->unsignedInteger(
+                    'revision',
+                )->default(1);
 
-                $table->foreignId('created_by_user_id')
+                $table->foreignId(
+                    'created_by_user_id',
+                )
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->foreignId('submitted_by_user_id')
+                $table->foreignId(
+                    'submitted_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('submitted_at')
-                    ->nullable();
+                $table->timestamp(
+                    'submitted_at',
+                )->nullable();
 
-                $table->foreignId('approved_by_user_id')
+                $table->foreignId(
+                    'approved_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('approved_at')
-                    ->nullable();
+                $table->timestamp(
+                    'approved_at',
+                )->nullable();
 
-                $table->foreignId('posted_by_user_id')
+                $table->foreignId(
+                    'posted_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('posted_at')
-                    ->nullable();
+                $table->timestamp(
+                    'posted_at',
+                )->nullable();
 
                 $table->string(
                     'accounting_posting_reference',
@@ -275,19 +338,25 @@ return new class extends Migration
                     190,
                 )->nullable();
 
-                $table->date('reversal_posting_date')
-                    ->nullable();
+                $table->date(
+                    'reversal_posting_date',
+                )->nullable();
 
-                $table->foreignId('reversed_by_user_id')
+                $table->foreignId(
+                    'reversed_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('reversed_at')
-                    ->nullable();
+                $table->timestamp(
+                    'reversed_at',
+                )->nullable();
 
-                $table->string('reversal_reason', 500)
-                    ->nullable();
+                $table->string(
+                    'reversal_reason',
+                    500,
+                )->nullable();
 
                 $table->string(
                     'accounting_reversal_reference',
@@ -299,16 +368,21 @@ return new class extends Migration
                     190,
                 )->nullable();
 
-                $table->foreignId('cancelled_by_user_id')
+                $table->foreignId(
+                    'cancelled_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('cancelled_at')
-                    ->nullable();
+                $table->timestamp(
+                    'cancelled_at',
+                )->nullable();
 
-                $table->string('cancellation_reason', 500)
-                    ->nullable();
+                $table->string(
+                    'cancellation_reason',
+                    500,
+                )->nullable();
 
                 $table->timestamps();
                 $table->softDeletes();
@@ -360,40 +434,83 @@ return new class extends Migration
                     ->constrained('tenants')
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_credit_note_id')
-                    ->constrained('customer_credit_notes')
+                $table->foreignId(
+                    'customer_credit_note_id',
+                )
+                    ->constrained(
+                        'customer_credit_notes',
+                    )
                     ->cascadeOnDelete();
 
-                $table->foreignId('sales_invoice_line_id')
-                    ->constrained('sales_invoice_lines')
+                $table->foreignId(
+                    'sales_invoice_line_id',
+                )
+                    ->constrained(
+                        'sales_invoice_lines',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('sales_order_line_id')
-                    ->constrained('sales_order_lines')
+                $table->foreignId(
+                    'sales_order_line_id',
+                )
+                    ->constrained(
+                        'sales_order_lines',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('product_id')
+                $table->foreignId(
+                    'product_id',
+                )
                     ->constrained('products')
                     ->restrictOnDelete();
 
-                $table->foreignId('unit_id')
+                $table->foreignId(
+                    'unit_id',
+                )
                     ->constrained('units')
                     ->restrictOnDelete();
 
-                $table->unsignedInteger('line_number');
+                $table->unsignedInteger(
+                    'line_number',
+                );
 
-                $table->string('line_type', 20)
-                    ->comment('quantity, amount');
+                $table->string(
+                    'line_type',
+                    20,
+                )->comment(
+                    'quantity, amount',
+                );
 
-                $table->string('product_name', 160);
-                $table->string('product_sku', 80);
+                $table->string(
+                    'product_name',
+                    160,
+                );
 
-                $table->string('product_type', 30)
-                    ->comment('stock, non_stock, service');
+                $table->string(
+                    'product_sku',
+                    80,
+                );
 
-                $table->string('unit_name', 100);
-                $table->string('unit_code', 30);
-                $table->text('description')->nullable();
+                $table->string(
+                    'product_type',
+                    30,
+                )->comment(
+                    'stock, non_stock, service',
+                );
+
+                $table->string(
+                    'unit_name',
+                    100,
+                );
+
+                $table->string(
+                    'unit_code',
+                    30,
+                );
+
+                $table->text(
+                    'description',
+                )->nullable();
 
                 $table->decimal(
                     'credit_quantity',
@@ -401,8 +518,9 @@ return new class extends Migration
                     6,
                 )->default(0);
 
-                $table->boolean('return_to_stock')
-                    ->default(false);
+                $table->boolean(
+                    'return_to_stock',
+                )->default(false);
 
                 $table->decimal(
                     'unit_price',
@@ -458,18 +576,33 @@ return new class extends Migration
                     6,
                 )->default(0);
 
-                $table->foreignId('stock_ledger_entry_id')
+                $table->foreignId(
+                    'stock_ledger_entry_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('stock_ledger_entries')
+                    ->constrained(
+                        'stock_ledger_entries',
+                    )
                     ->restrictOnDelete();
 
                 $table->foreignId(
                     'reversal_stock_ledger_entry_id',
+                )->nullable();
+
+                $table->unique(
+                    'reversal_stock_ledger_entry_id',
+                    'cust_credit_line_rev_stock_uq',
+                );
+
+                $table->foreign(
+                    'reversal_stock_ledger_entry_id',
+                    'cust_credit_line_rev_stock_fk',
                 )
-                    ->nullable()
-                    ->unique()
-                    ->constrained('stock_ledger_entries')
+                    ->references('id')
+                    ->on(
+                        'stock_ledger_entries',
+                    )
                     ->restrictOnDelete();
 
                 $table->timestamps();
@@ -510,20 +643,46 @@ return new class extends Migration
                     ->constrained('tenants')
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_credit_note_line_id')
-                    ->constrained('customer_credit_note_lines')
+                $table->foreignId(
+                    'customer_credit_note_line_id',
+                );
+
+                $table->foreign(
+                    'customer_credit_note_line_id',
+                    'cust_credit_dispatch_line_fk',
+                )
+                    ->references('id')
+                    ->on(
+                        'customer_credit_note_lines',
+                    )
                     ->cascadeOnDelete();
 
                 $table->foreignId(
                     'sales_invoice_dispatch_allocation_id',
+                );
+
+                $table->foreign(
+                    'sales_invoice_dispatch_allocation_id',
+                    'cust_credit_sales_dispatch_alloc_fk',
                 )
-                    ->constrained(
+                    ->references('id')
+                    ->on(
                         'sales_invoice_dispatch_allocations',
                     )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_dispatch_line_id')
-                    ->constrained('customer_dispatch_lines')
+                $table->foreignId(
+                    'customer_dispatch_line_id',
+                );
+
+                $table->foreign(
+                    'customer_dispatch_line_id',
+                    'cust_credit_dispatch_source_fk',
+                )
+                    ->references('id')
+                    ->on(
+                        'customer_dispatch_lines',
+                    )
                     ->restrictOnDelete();
 
                 $table->decimal(
@@ -584,10 +743,6 @@ return new class extends Migration
             function (Blueprint $table): void {
                 $table->dropIndex(
                     'sales_order_lines_returned_quantity_index',
-                );
-
-                $table->dropColumn(
-                    'returned_quantity',
                 );
             },
         );

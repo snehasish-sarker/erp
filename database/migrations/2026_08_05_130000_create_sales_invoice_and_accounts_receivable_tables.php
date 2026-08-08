@@ -385,8 +385,16 @@ return new class extends Migration
                     ->constrained('sales_invoice_lines')
                     ->cascadeOnDelete();
 
-                $table->foreignId('customer_dispatch_line_id')
-                    ->constrained('customer_dispatch_lines')
+                $table->foreignId(
+                    'customer_dispatch_line_id',
+                );
+
+                $table->foreign(
+                    'customer_dispatch_line_id',
+                    'sales_inv_dispatch_line_fk',
+                )
+                    ->references('id')
+                    ->on('customer_dispatch_lines')
                     ->restrictOnDelete();
 
                 $table->decimal(
@@ -763,9 +771,16 @@ return new class extends Migration
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->foreignId('reversal_accounting_period_id')
-                    ->nullable()
-                    ->constrained('accounting_periods')
+                $table->foreignId(
+                    'reversal_accounting_period_id',
+                )->nullable();
+
+                $table->foreign(
+                    'reversal_accounting_period_id',
+                    'customer_open_alloc_rev_period_fk',
+                )
+                    ->references('id')
+                    ->on('accounting_periods')
                     ->restrictOnDelete();
 
                 $table->date('reversal_posting_date')

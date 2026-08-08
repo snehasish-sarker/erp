@@ -9,7 +9,7 @@ use App\Http\Requests\AccountingPeriods\CloseAccountingPeriodRequest;
 use App\Http\Requests\AccountingPeriods\ReopenAccountingPeriodRequest;
 use App\Models\AccountingPeriod;
 use App\Models\User;
-use App\Services\Accounting\AccountingPeriodService;
+use App\Services\Accounting\PeriodCloseService;
 use App\Support\Responses\CommonResponseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Gate;
 final class AccountingPeriodController extends Controller
 {
     public function __construct(
-        private readonly AccountingPeriodService $accountingPeriodService,
+        private readonly PeriodCloseService $periodCloseService,
         private readonly CommonResponseService $responseService,
     ) {
     }
@@ -39,14 +39,36 @@ final class AccountingPeriodController extends Controller
             401,
         );
 
-        $accountingPeriod = $this
-            ->accountingPeriodService
-            ->close(
-                accountingPeriod:
-                    $accountingPeriod,
+        $run = $this->periodCloseService->close(
+            period: $accountingPeriod,
+            actor: $actor,
+            reason: (string) $request->validated('reason'),
+        );
 
-                actor: $actor,
+        $accountingPeriod = $run->accountingPeriod()->firstOrFail();
+
+        if ($run->isBlocked()) {
+            $redirectTo = $actor->can('financial_control.view')
+                ? route(
+                    'financial-control.period-close.show',
+                    $accountingPeriod,
+                )
+                : route(
+                    'accounting-periods.show',
+                    $accountingPeriod->fiscal_year_id,
+                );
+
+            return $this->responseService->error(
+                message: 'The accounting period cannot be closed because financial controls failed.',
+                errors: [
+                    'period_close' => [
+                        'Review the saved period-close checklist and resolve every blocking control.',
+                    ],
+                ],
+                code: 'PERIOD_CLOSE_BLOCKED',
+                redirectTo: $redirectTo,
             );
+        }
 
         return $this->responseService->success(
             message: 'Accounting period closed successfully.',
@@ -84,14 +106,11 @@ final class AccountingPeriodController extends Controller
             401,
         );
 
-        $accountingPeriod = $this
-            ->accountingPeriodService
-            ->reopen(
-                accountingPeriod:
-                    $accountingPeriod,
-
-                actor: $actor,
-            );
+        $accountingPeriod = $this->periodCloseService->reopen(
+            period: $accountingPeriod,
+            actor: $actor,
+            reason: (string) $request->validated('reason'),
+        );
 
         return $this->responseService->success(
             message: 'Accounting period reopened successfully.',

@@ -280,6 +280,26 @@ final class PermissionSeeder extends Seeder
         'accounting_periods.close',
         'accounting_periods.reopen',
 
+        'financial_control.view',
+        'financial_statements.view',
+        'period_close.prepare',
+        'period_close.close',
+        'period_close.reopen',
+
+        'management_dashboard.view',
+        'management_budgets.view',
+        'management_budgets.create',
+        'management_budgets.update',
+        'management_budgets.delete',
+        'management_budgets.approve',
+        'management_budgets.reopen',
+        'management_reports.view',
+        'management_report_schedules.view',
+        'management_report_schedules.create',
+        'management_report_schedules.update',
+        'management_report_schedules.delete',
+        'management_readiness.view',
+
         'expenses.view',
         'expenses.create',
         'expenses.update',
@@ -307,6 +327,25 @@ final class PermissionSeeder extends Seeder
         'exports.cancel',
     ];
 
+    /**
+     * System-operator permissions are intentionally excluded from Tenant Owner.
+     * They expose infrastructure-wide queue, backup, and deployment metadata.
+     *
+     * @var list<string>
+     */
+    private const SYSTEM_PERMISSIONS = [
+        'operations.view',
+        'operations.backups.view',
+        'operations.backups.verify',
+        'operations.failed_jobs.view',
+        'operations.preflight.view',
+        'production_acceptance.view',
+        'production_acceptance.run',
+        'release_candidates.view',
+        'release_candidates.create',
+        'release_candidates.verify',
+    ];
+
     public function run(): void
     {
         $permissionRegistrar = app(
@@ -315,7 +354,7 @@ final class PermissionSeeder extends Seeder
 
         $permissionRegistrar->forgetCachedPermissions();
 
-        foreach (self::PERMISSIONS as $permissionName) {
+        foreach ([...self::PERMISSIONS, ...self::SYSTEM_PERMISSIONS] as $permissionName) {
             Permission::query()->firstOrCreate([
                 'name' => $permissionName,
                 'guard_name' => self::GUARD_NAME,
@@ -359,7 +398,7 @@ final class PermissionSeeder extends Seeder
         $roles = [
             'Tenant Owner' => self::PERMISSIONS,
 
-            'System Administrator' => self::PERMISSIONS,
+            'System Administrator' => [...self::PERMISSIONS, ...self::SYSTEM_PERMISSIONS],
 
             'Branch Manager' => [
                 'dashboard.view',
@@ -429,6 +468,8 @@ final class PermissionSeeder extends Seeder
                 'reports.receivables',
                 'reports.payables',
                 'reports.profit',
+                'management_dashboard.view',
+                'management_reports.view',
 
                 'exports.view',
                 'exports.create',
@@ -483,6 +524,7 @@ final class PermissionSeeder extends Seeder
 
                 'reports.purchases',
                 'reports.inventory',
+                'management_reports.view',
 
                 'exports.view',
                 'exports.create',
@@ -599,6 +641,8 @@ final class PermissionSeeder extends Seeder
                 'reports.sales',
                 'reports.receivables',
                 'reports.profit',
+                'management_dashboard.view',
+                'management_reports.view',
 
                 'exports.view',
                 'exports.create',
@@ -733,6 +777,26 @@ final class PermissionSeeder extends Seeder
                 'accounting_periods.close',
                 'accounting_periods.reopen',
 
+                'financial_control.view',
+                'financial_statements.view',
+                'period_close.prepare',
+                'period_close.close',
+                'period_close.reopen',
+
+                'management_dashboard.view',
+                'management_budgets.view',
+                'management_budgets.create',
+                'management_budgets.update',
+                'management_budgets.delete',
+                'management_budgets.approve',
+                'management_budgets.reopen',
+                'management_reports.view',
+                'management_report_schedules.view',
+                'management_report_schedules.create',
+                'management_report_schedules.update',
+                'management_report_schedules.delete',
+                'management_readiness.view',
+
                 'expenses.view',
                 'expenses.create',
                 'expenses.update',
@@ -743,6 +807,8 @@ final class PermissionSeeder extends Seeder
                 'reports.payables',
                 'reports.profit',
                 'reports.accounting',
+                'financial_control.view',
+                'financial_statements.view',
 
                 'exports.view',
                 'exports.create',
@@ -812,6 +878,13 @@ final class PermissionSeeder extends Seeder
                 'accounts.view',
                 'journals.view',
                 'accounting_periods.view',
+                'financial_control.view',
+                'financial_statements.view',
+                'management_dashboard.view',
+                'management_budgets.view',
+                'management_reports.view',
+                'management_report_schedules.view',
+                'management_readiness.view',
                 'expenses.view',
 
                 'reports.sales',
@@ -865,8 +938,8 @@ final class PermissionSeeder extends Seeder
         array $permissions,
     ): void {
         /*
-         * Tenant Owner and System Administrator are authoritative roles.
-         * They must always contain every currently registered permission.
+         * Tenant Owner and System Administrator are authoritative baseline roles.
+         * System-operator permissions remain exclusive to System Administrator.
          */
         if (
             in_array(

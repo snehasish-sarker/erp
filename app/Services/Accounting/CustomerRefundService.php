@@ -23,6 +23,7 @@ use Brick\Math\RoundingMode;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 final class CustomerRefundService
 {

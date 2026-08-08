@@ -58,8 +58,12 @@ return new class extends Migration
                     120,
                 )->nullable();
 
-                $table->char('currency_code', 3)
-                    ->comment('ISO 4217 currency code');
+                $table->char(
+                    'currency_code',
+                    3,
+                )->comment(
+                    'ISO 4217 currency code',
+                );
 
                 $table->decimal(
                     'exchange_rate',
@@ -67,11 +71,6 @@ return new class extends Migration
                     8,
                 )->default(1);
 
-                /*
-                 * Customer snapshot fields preserve the commercial identity
-                 * and addresses used when the sales order was approved, even
-                 * if the Customer master record is changed later.
-                 */
                 $table->string(
                     'customer_name',
                     160,
@@ -170,17 +169,22 @@ return new class extends Migration
                     'terms_and_conditions',
                 )->nullable();
 
-                $table->text('notes')
-                    ->nullable();
+                $table->text(
+                    'notes',
+                )->nullable();
 
-                $table->string('status', 30)
+                $table->string(
+                    'status',
+                    30,
+                )
                     ->default('draft')
                     ->comment(
                         'draft, submitted, approved, partially_allocated, allocated, partially_dispatched, dispatched, partially_invoiced, invoiced, closed, cancelled',
                     );
 
-                $table->unsignedInteger('revision')
-                    ->default(1);
+                $table->unsignedInteger(
+                    'revision',
+                )->default(1);
 
                 $table->foreignId(
                     'created_by_user_id',
@@ -195,8 +199,9 @@ return new class extends Migration
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('submitted_at')
-                    ->nullable();
+                $table->timestamp(
+                    'submitted_at',
+                )->nullable();
 
                 $table->foreignId(
                     'approved_by_user_id',
@@ -205,8 +210,9 @@ return new class extends Migration
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('approved_at')
-                    ->nullable();
+                $table->timestamp(
+                    'approved_at',
+                )->nullable();
 
                 $table->foreignId(
                     'cancelled_by_user_id',
@@ -215,8 +221,9 @@ return new class extends Migration
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('cancelled_at')
-                    ->nullable();
+                $table->timestamp(
+                    'cancelled_at',
+                )->nullable();
 
                 $table->string(
                     'cancellation_reason',
@@ -282,24 +289,28 @@ return new class extends Migration
                     ->constrained('tenants')
                     ->restrictOnDelete();
 
-                $table->foreignId('sales_order_id')
+                $table->foreignId(
+                    'sales_order_id',
+                )
                     ->constrained('sales_orders')
                     ->cascadeOnDelete();
 
-                $table->foreignId('product_id')
+                $table->foreignId(
+                    'product_id',
+                )
                     ->constrained('products')
                     ->restrictOnDelete();
 
-                $table->foreignId('unit_id')
+                $table->foreignId(
+                    'unit_id',
+                )
                     ->constrained('units')
                     ->restrictOnDelete();
 
-                $table->unsignedInteger('line_number');
+                $table->unsignedInteger(
+                    'line_number',
+                );
 
-                /*
-                 * Product and unit snapshots preserve the approved order's
-                 * wording even when master-data names or codes change.
-                 */
                 $table->string(
                     'product_name',
                     160,
@@ -327,8 +338,9 @@ return new class extends Migration
                     30,
                 );
 
-                $table->text('description')
-                    ->nullable();
+                $table->text(
+                    'description',
+                )->nullable();
 
                 $table->decimal(
                     'ordered_quantity',

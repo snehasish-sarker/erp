@@ -422,9 +422,9 @@ final class DefaultChartOfAccounts
             'parent_code' => '3200',
             'account_type' => 'equity',
             'account_subtype' => 'retained_earnings',
-            'system_key' => null,
+            'system_key' => 'retained_earnings',
             'is_group' => false,
-            'allow_manual_posting' => true,
+            'allow_manual_posting' => false,
             'description' => 'Accumulated earnings retained after distributions.',
         ],
         [

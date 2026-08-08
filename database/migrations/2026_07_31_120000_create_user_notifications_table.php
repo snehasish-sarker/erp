@@ -36,23 +36,33 @@ return new class extends Migration
                     160,
                 );
 
-                $table->string('category', 40)
-                    ->comment(
-                        'system, security, approval, procurement, inventory, sales, accounting, export',
-                    )
-                    ->index();
+                $table->string(
+                    'category',
+                    40,
+                )->comment(
+                    'system, security, approval, procurement, inventory, sales, accounting, export',
+                );
 
-                $table->string('type', 100)
-                    ->index();
+                $table->string(
+                    'type',
+                    100,
+                )->index();
 
-                $table->string('severity', 20)
+                $table->string(
+                    'severity',
+                    20,
+                )
                     ->default('info')
                     ->comment(
                         'info, success, warning, error',
                     )
                     ->index();
 
-                $table->string('title', 160);
+                $table->string(
+                    'title',
+                    160,
+                );
+
                 $table->text('message');
 
                 $table->string(
@@ -85,7 +95,8 @@ return new class extends Migration
                     255,
                 )->nullable();
 
-                $table->json('data')->nullable();
+                $table->json('data')
+                    ->nullable();
 
                 $table->timestamp('read_at')
                     ->nullable();

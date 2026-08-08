@@ -116,8 +116,22 @@ const closePeriod = (
         return;
     }
 
+    const reason = window.prompt(
+        `Enter the reason for closing ${period.name}:`,
+    );
+
+    const normalizedReason = reason?.trim() ?? '';
+
+    if (normalizedReason.length < 10 || normalizedReason.length > 500) {
+        window.alert(
+            'The reason must contain between 10 and 500 characters.',
+        );
+
+        return;
+    }
+
     const confirmed = window.confirm(
-        `Close ${period.name}? New postings dated within this period will be blocked.`,
+        `Run financial controls and close ${period.name}? New postings dated within this period will be blocked.`,
     );
 
     if (!confirmed) {
@@ -129,7 +143,7 @@ const closePeriod = (
 
     router.patch(
         `/erp/accounting-periods/periods/${period.id}/close`,
-        {},
+        { reason: normalizedReason },
         {
             preserveScroll: true,
 
@@ -148,8 +162,22 @@ const reopenPeriod = (
         return;
     }
 
+    const reason = window.prompt(
+        `Enter the reason for reopening ${period.name}:`,
+    );
+
+    const normalizedReason = reason?.trim() ?? '';
+
+    if (normalizedReason.length < 10 || normalizedReason.length > 500) {
+        window.alert(
+            'The reason must contain between 10 and 500 characters.',
+        );
+
+        return;
+    }
+
     const confirmed = window.confirm(
-        `Reopen ${period.name}? Authorized users will be able to post transactions into this period again.`,
+        `Reopen ${period.name}? Authorized users will be able to post transactions into this period again and year-end closing journals will be reversed where applicable.`,
     );
 
     if (!confirmed) {
@@ -161,7 +189,7 @@ const reopenPeriod = (
 
     router.patch(
         `/erp/accounting-periods/periods/${period.id}/reopen`,
-        {},
+        { reason: normalizedReason },
         {
             preserveScroll: true,
 

@@ -106,6 +106,42 @@ const menuGroups: MenuGroup[] = [
                 permission: 'exports.view',
             },
             {
+                name: 'System Operations',
+                icon: SettingsIcon,
+                subItems: [
+                    {
+                        name: 'Operations Dashboard',
+                        path: namedPath('operations.index'),
+                        permission: 'operations.view',
+                    },
+                    {
+                        name: 'Database Backups',
+                        path: namedPath('operations.backups.index'),
+                        permission: 'operations.backups.view',
+                    },
+                    {
+                        name: 'Failed Jobs',
+                        path: namedPath('operations.failed-jobs.index'),
+                        permission: 'operations.failed_jobs.view',
+                    },
+                    {
+                        name: 'Deployment Preflight',
+                        path: namedPath('operations.preflight'),
+                        permission: 'operations.preflight.view',
+                    },
+                    {
+                        name: 'Production Acceptance',
+                        path: namedPath('production-acceptance.index'),
+                        permission: 'production_acceptance.view',
+                    },
+                    {
+                        name: 'Release Candidates',
+                        path: namedPath('release-candidates.index'),
+                        permission: 'release_candidates.view',
+                    },
+                ],
+            },
+            {
                 name: 'Notifications',
                 icon: BellIcon,
                 path: '/erp/notifications',
@@ -357,6 +393,98 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-payable.supplier-statement',
                         ),
                         permission: 'reports.payables',
+                    },
+                ],
+            },
+            {
+                name: 'Financial Control',
+                icon: BarChartIcon,
+                subItems: [
+                    {
+                        name: 'Control Dashboard',
+                        path: namedPath('financial-control.index'),
+                        permission: 'financial_control.view',
+                    },
+                    {
+                        name: 'Trial Balance',
+                        path: namedPath('reports.financial-statements.trial-balance'),
+                        permission: 'financial_statements.view',
+                    },
+                    {
+                        name: 'Profit and Loss',
+                        path: namedPath('reports.financial-statements.profit-and-loss'),
+                        permission: 'financial_statements.view',
+                    },
+                    {
+                        name: 'Balance Sheet',
+                        path: namedPath('reports.financial-statements.balance-sheet'),
+                        permission: 'financial_statements.view',
+                    },
+                    {
+                        name: 'Cash Flow',
+                        path: namedPath('reports.financial-statements.cash-flow'),
+                        permission: 'financial_statements.view',
+                    },
+                    {
+                        name: 'Reconciliations',
+                        path: namedPath('financial-control.reconciliations'),
+                        permission: 'financial_control.view',
+                    },
+                ],
+            },
+            {
+                name: 'Management',
+                icon: BarChartIcon,
+                subItems: [
+                    {
+                        name: 'Executive Dashboard',
+                        path: namedPath('management.index'),
+                        permission: 'management_dashboard.view',
+                    },
+                    {
+                        name: 'Budgets',
+                        path: namedPath('management.budgets.index'),
+                        permission: 'management_budgets.view',
+                    },
+                    {
+                        name: 'Branch Profitability',
+                        path: namedPath('management.reports.branch-profitability'),
+                        permission: 'management_reports.view',
+                    },
+                    {
+                        name: 'Budget vs Actual',
+                        path: namedPath('management.reports.budget-vs-actual'),
+                        permission: 'management_reports.view',
+                    },
+                    {
+                        name: 'Product Profitability',
+                        path: namedPath('management.reports.product-profitability'),
+                        permission: 'management_reports.view',
+                    },
+                    {
+                        name: 'Customer Profitability',
+                        path: namedPath('management.reports.customer-profitability'),
+                        permission: 'management_reports.view',
+                    },
+                    {
+                        name: 'Supplier Spend',
+                        path: namedPath('management.reports.supplier-spend'),
+                        permission: 'management_reports.view',
+                    },
+                    {
+                        name: 'Gross Margin',
+                        path: namedPath('management.reports.gross-margin'),
+                        permission: 'management_reports.view',
+                    },
+                    {
+                        name: 'Scheduled Reports',
+                        path: namedPath('management.schedules.index'),
+                        permission: 'management_report_schedules.view',
+                    },
+                    {
+                        name: 'Production Readiness',
+                        path: namedPath('management.production-readiness'),
+                        permission: 'management_readiness.view',
                     },
                 ],
             },

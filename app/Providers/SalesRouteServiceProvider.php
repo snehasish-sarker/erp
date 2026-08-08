@@ -50,5 +50,30 @@ final class SalesRouteServiceProvider extends ServiceProvider
             [],
             base_path('routes/treasury.php'),
         );
+
+        Route::group(
+            [],
+            base_path('routes/financial-control.php'),
+        );
+
+        Route::group(
+            [],
+            base_path('routes/management.php'),
+        );
+
+        Route::group(
+            [],
+            base_path('routes/operations.php'),
+        );
+
+        Route::group(
+            [],
+            base_path('routes/production-acceptance.php'),
+        );
+
+        Route::group(
+            [],
+            base_path('routes/release-candidates.php'),
+        );
     }
 }

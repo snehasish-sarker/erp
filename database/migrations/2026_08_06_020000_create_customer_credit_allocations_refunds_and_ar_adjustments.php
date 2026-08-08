@@ -27,10 +27,21 @@ return new class extends Migration
                     ->constrained('customers')
                     ->restrictOnDelete();
 
-                $table->foreignId('document_number_allocation_id')
-                    ->nullable()
-                    ->unique()
-                    ->constrained('document_number_allocations')
+                $table->foreignId(
+                    'document_number_allocation_id',
+                )->nullable();
+
+                $table->unique(
+                    'document_number_allocation_id',
+                    'cust_credit_app_doc_alloc_uq',
+                );
+
+                $table->foreign(
+                    'document_number_allocation_id',
+                    'cust_credit_app_doc_alloc_fk',
+                )
+                    ->references('id')
+                    ->on('document_number_allocations')
                     ->restrictOnDelete();
 
                 $table->string('application_number', 160)
@@ -142,22 +153,49 @@ return new class extends Migration
                     ->constrained('tenants')
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_credit_application_id')
-                    ->constrained('customer_credit_applications')
+                $table->foreignId(
+                    'customer_credit_application_id',
+                );
+
+                $table->foreign(
+                    'customer_credit_application_id',
+                    'cust_credit_app_line_parent_fk',
+                )
+                    ->references('id')
+                    ->on('customer_credit_applications')
                     ->cascadeOnDelete();
 
-                $table->foreignId('receivable_open_item_id')
-                    ->constrained('customer_open_items')
+                $table->foreignId(
+                    'receivable_open_item_id',
+                );
+
+                $table->foreign(
+                    'receivable_open_item_id',
+                    'cust_credit_app_receivable_fk',
+                )
+                    ->references('id')
+                    ->on('customer_open_items')
                     ->restrictOnDelete();
 
                 $table->foreignId('credit_open_item_id')
                     ->constrained('customer_open_items')
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_open_item_allocation_id')
-                    ->nullable()
-                    ->unique()
-                    ->constrained('customer_open_item_allocations')
+                $table->foreignId(
+                    'customer_open_item_allocation_id',
+                )->nullable();
+
+                $table->unique(
+                    'customer_open_item_allocation_id',
+                    'cust_credit_app_open_alloc_uq',
+                );
+
+                $table->foreign(
+                    'customer_open_item_allocation_id',
+                    'cust_credit_app_open_alloc_fk',
+                )
+                    ->references('id')
+                    ->on('customer_open_item_allocations')
                     ->restrictOnDelete();
 
                 $table->unsignedInteger('line_number');
@@ -169,39 +207,85 @@ return new class extends Migration
                     ->nullable();
 
                 $table->string('credit_item_type', 30);
-                $table->decimal('amount', 20, 6);
-                $table->decimal('receivable_exchange_rate', 20, 8);
-                $table->decimal('credit_exchange_rate', 20, 8);
 
-                $table->decimal('receivable_base_amount', 20, 6)
-                    ->default(0);
+                $table->decimal(
+                    'amount',
+                    20,
+                    6,
+                );
 
-                $table->decimal('credit_base_amount', 20, 6)
-                    ->default(0);
+                $table->decimal(
+                    'receivable_exchange_rate',
+                    20,
+                    8,
+                );
 
-                $table->decimal('exchange_difference_amount', 20, 6)
-                    ->default(0);
+                $table->decimal(
+                    'credit_exchange_rate',
+                    20,
+                    8,
+                );
 
-                $table->string('status', 20)
+                $table->decimal(
+                    'receivable_base_amount',
+                    20,
+                    6,
+                )->default(0);
+
+                $table->decimal(
+                    'credit_base_amount',
+                    20,
+                    6,
+                )->default(0);
+
+                $table->decimal(
+                    'exchange_difference_amount',
+                    20,
+                    6,
+                )->default(0);
+
+                $table->string(
+                    'status',
+                    20,
+                )
                     ->default('draft')
-                    ->comment('draft, applied, reversed, cancelled');
+                    ->comment(
+                        'draft, applied, reversed, cancelled',
+                    );
 
-                $table->timestamp('applied_at')->nullable();
-                $table->timestamp('reversed_at')->nullable();
+                $table->timestamp(
+                    'applied_at',
+                )->nullable();
+
+                $table->timestamp(
+                    'reversed_at',
+                )->nullable();
+
                 $table->timestamps();
 
                 $table->unique(
-                    ['customer_credit_application_id', 'line_number'],
+                    [
+                        'customer_credit_application_id',
+                        'line_number',
+                    ],
                     'customer_credit_application_lines_line_unique',
                 );
 
                 $table->index(
-                    ['tenant_id', 'receivable_open_item_id', 'status'],
+                    [
+                        'tenant_id',
+                        'receivable_open_item_id',
+                        'status',
+                    ],
                     'customer_credit_application_receivable_index',
                 );
 
                 $table->index(
-                    ['tenant_id', 'credit_open_item_id', 'status'],
+                    [
+                        'tenant_id',
+                        'credit_open_item_id',
+                        'status',
+                    ],
                     'customer_credit_application_credit_index',
                 );
             },
@@ -228,128 +312,254 @@ return new class extends Migration
                     ->constrained('accounts')
                     ->restrictOnDelete();
 
-                $table->foreignId('document_number_allocation_id')
+                $table->foreignId(
+                    'document_number_allocation_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('document_number_allocations')
+                    ->constrained(
+                        'document_number_allocations',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_ledger_entry_id')
+                $table->foreignId(
+                    'customer_ledger_entry_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('customer_ledger_entries')
+                    ->constrained(
+                        'customer_ledger_entries',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_open_item_id')
+                $table->foreignId(
+                    'customer_open_item_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('customer_open_items')
+                    ->constrained(
+                        'customer_open_items',
+                    )
                     ->restrictOnDelete();
 
-                $table->string('refund_number', 160)->nullable();
+                $table->string(
+                    'refund_number',
+                    160,
+                )->nullable();
+
                 $table->date('refund_date');
                 $table->date('posting_date');
-                $table->char('currency_code', 3);
-                $table->decimal('exchange_rate', 20, 8)->default(1);
 
-                $table->string('refund_method', 40)
-                    ->comment(
-                        'cash, bank_transfer, cheque, mobile_financial_service, other',
-                    );
+                $table->char(
+                    'currency_code',
+                    3,
+                );
 
-                $table->string('refund_reference', 160)->nullable();
-                $table->string('cheque_number', 100)->nullable();
-                $table->date('cheque_date')->nullable();
-                $table->string('customer_name', 160);
-                $table->string('customer_code', 60);
-                $table->string('refund_account_code', 50);
-                $table->string('refund_account_name', 160);
+                $table->decimal(
+                    'exchange_rate',
+                    20,
+                    8,
+                )->default(1);
 
-                $table->string('status', 30)
+                $table->string(
+                    'refund_method',
+                    40,
+                )->comment(
+                    'cash, bank_transfer, cheque, mobile_financial_service, other',
+                );
+
+                $table->string(
+                    'refund_reference',
+                    160,
+                )->nullable();
+
+                $table->string(
+                    'cheque_number',
+                    100,
+                )->nullable();
+
+                $table->date(
+                    'cheque_date',
+                )->nullable();
+
+                $table->string(
+                    'customer_name',
+                    160,
+                );
+
+                $table->string(
+                    'customer_code',
+                    60,
+                );
+
+                $table->string(
+                    'refund_account_code',
+                    50,
+                );
+
+                $table->string(
+                    'refund_account_name',
+                    160,
+                );
+
+                $table->string(
+                    'status',
+                    30,
+                )
                     ->default('draft')
                     ->comment(
                         'draft, submitted, approved, posted, reversed, cancelled',
                     );
 
-                $table->decimal('total_amount', 20, 6);
+                $table->decimal(
+                    'total_amount',
+                    20,
+                    6,
+                );
 
-                $table->decimal('base_cash_amount', 20, 6)
-                    ->default(0);
+                $table->decimal(
+                    'base_cash_amount',
+                    20,
+                    6,
+                )->default(0);
 
-                $table->decimal('base_credit_amount', 20, 6)
-                    ->default(0);
+                $table->decimal(
+                    'base_credit_amount',
+                    20,
+                    6,
+                )->default(0);
 
-                $table->decimal('exchange_difference_amount', 20, 6)
-                    ->default(0);
+                $table->decimal(
+                    'exchange_difference_amount',
+                    20,
+                    6,
+                )->default(0);
 
-                $table->string('reason', 500);
-                $table->text('notes')->nullable();
-                $table->unsignedInteger('revision')->default(1);
+                $table->string(
+                    'reason',
+                    500,
+                );
 
-                $table->foreignId('created_by_user_id')
+                $table->text(
+                    'notes',
+                )->nullable();
+
+                $table->unsignedInteger(
+                    'revision',
+                )->default(1);
+
+                $table->foreignId(
+                    'created_by_user_id',
+                )
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->foreignId('submitted_by_user_id')
+                $table->foreignId(
+                    'submitted_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('submitted_at')->nullable();
+                $table->timestamp(
+                    'submitted_at',
+                )->nullable();
 
-                $table->foreignId('approved_by_user_id')
+                $table->foreignId(
+                    'approved_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('approved_at')->nullable();
+                $table->timestamp(
+                    'approved_at',
+                )->nullable();
 
-                $table->foreignId('posted_by_user_id')
+                $table->foreignId(
+                    'posted_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('posted_at')->nullable();
+                $table->timestamp(
+                    'posted_at',
+                )->nullable();
 
-                $table->string('accounting_posting_reference', 190)
-                    ->nullable();
+                $table->string(
+                    'accounting_posting_reference',
+                    190,
+                )->nullable();
 
-                $table->date('reversal_posting_date')->nullable();
+                $table->date(
+                    'reversal_posting_date',
+                )->nullable();
 
-                $table->foreignId('reversed_by_user_id')
+                $table->foreignId(
+                    'reversed_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('reversed_at')->nullable();
-                $table->string('reversal_reason', 500)->nullable();
+                $table->timestamp(
+                    'reversed_at',
+                )->nullable();
 
-                $table->string('accounting_reversal_reference', 190)
-                    ->nullable();
+                $table->string(
+                    'reversal_reason',
+                    500,
+                )->nullable();
 
-                $table->foreignId('cancelled_by_user_id')
+                $table->string(
+                    'accounting_reversal_reference',
+                    190,
+                )->nullable();
+
+                $table->foreignId(
+                    'cancelled_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('cancelled_at')->nullable();
-                $table->string('cancellation_reason', 500)->nullable();
+                $table->timestamp(
+                    'cancelled_at',
+                )->nullable();
+
+                $table->string(
+                    'cancellation_reason',
+                    500,
+                )->nullable();
 
                 $table->timestamps();
                 $table->softDeletes();
 
                 $table->unique(
-                    ['tenant_id', 'refund_number'],
+                    [
+                        'tenant_id',
+                        'refund_number',
+                    ],
                     'customer_refunds_tenant_number_unique',
                 );
 
                 $table->index(
-                    ['tenant_id', 'branch_id', 'status', 'posting_date'],
+                    [
+                        'tenant_id',
+                        'branch_id',
+                        'status',
+                        'posting_date',
+                    ],
                     'customer_refunds_branch_status_date_index',
                 );
 
                 $table->index(
-                    ['tenant_id', 'customer_id', 'status'],
+                    [
+                        'tenant_id',
+                        'customer_id',
+                        'status',
+                    ],
                     'customer_refunds_customer_status_index',
                 );
             },
@@ -364,52 +574,127 @@ return new class extends Migration
                     ->constrained('tenants')
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_refund_id')
-                    ->constrained('customer_refunds')
+                $table->foreignId(
+                    'customer_refund_id',
+                )
+                    ->constrained(
+                        'customer_refunds',
+                    )
                     ->cascadeOnDelete();
 
-                $table->foreignId('credit_open_item_id')
-                    ->constrained('customer_open_items')
+                $table->foreignId(
+                    'credit_open_item_id',
+                )
+                    ->constrained(
+                        'customer_open_items',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_open_item_allocation_id')
-                    ->nullable()
-                    ->unique()
-                    ->constrained('customer_open_item_allocations')
+                $table->foreignId(
+                    'customer_open_item_allocation_id',
+                )->nullable();
+
+                $table->unique(
+                    'customer_open_item_allocation_id',
+                    'cust_refund_open_alloc_uq',
+                );
+
+                $table->foreign(
+                    'customer_open_item_allocation_id',
+                    'cust_refund_open_alloc_fk',
+                )
+                    ->references('id')
+                    ->on(
+                        'customer_open_item_allocations',
+                    )
                     ->restrictOnDelete();
 
-                $table->unsignedInteger('line_number');
-                $table->string('credit_document_number', 160)->nullable();
-                $table->string('credit_item_type', 30);
-                $table->string('credit_source_type', 190)->nullable();
-                $table->unsignedBigInteger('credit_source_id')->nullable();
-                $table->decimal('amount', 20, 6);
-                $table->decimal('credit_exchange_rate', 20, 8);
+                $table->unsignedInteger(
+                    'line_number',
+                );
 
-                $table->decimal('credit_base_amount', 20, 6)
-                    ->default(0);
+                $table->string(
+                    'credit_document_number',
+                    160,
+                )->nullable();
 
-                $table->decimal('cash_base_amount', 20, 6)
-                    ->default(0);
+                $table->string(
+                    'credit_item_type',
+                    30,
+                );
 
-                $table->decimal('exchange_difference_amount', 20, 6)
-                    ->default(0);
+                $table->string(
+                    'credit_source_type',
+                    190,
+                )->nullable();
 
-                $table->string('status', 20)
+                $table->unsignedBigInteger(
+                    'credit_source_id',
+                )->nullable();
+
+                $table->decimal(
+                    'amount',
+                    20,
+                    6,
+                );
+
+                $table->decimal(
+                    'credit_exchange_rate',
+                    20,
+                    8,
+                );
+
+                $table->decimal(
+                    'credit_base_amount',
+                    20,
+                    6,
+                )->default(0);
+
+                $table->decimal(
+                    'cash_base_amount',
+                    20,
+                    6,
+                )->default(0);
+
+                $table->decimal(
+                    'exchange_difference_amount',
+                    20,
+                    6,
+                )->default(0);
+
+                $table->string(
+                    'status',
+                    20,
+                )
                     ->default('draft')
-                    ->comment('draft, applied, reversed, cancelled');
+                    ->comment(
+                        'draft, applied, reversed, cancelled',
+                    );
 
-                $table->timestamp('applied_at')->nullable();
-                $table->timestamp('reversed_at')->nullable();
+                $table->timestamp(
+                    'applied_at',
+                )->nullable();
+
+                $table->timestamp(
+                    'reversed_at',
+                )->nullable();
+
                 $table->timestamps();
 
                 $table->unique(
-                    ['customer_refund_id', 'line_number'],
+                    [
+                        'customer_refund_id',
+                        'line_number',
+                    ],
                     'customer_refund_allocations_line_unique',
                 );
 
                 $table->index(
-                    ['tenant_id', 'credit_open_item_id', 'status'],
+                    [
+                        'tenant_id',
+                        'credit_open_item_id',
+                        'status',
+                    ],
                     'customer_refund_allocations_credit_index',
                 );
             },
@@ -436,114 +721,233 @@ return new class extends Migration
                     ->constrained('accounts')
                     ->restrictOnDelete();
 
-                $table->foreignId('document_number_allocation_id')
+                $table->foreignId(
+                    'document_number_allocation_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('document_number_allocations')
+                    ->constrained(
+                        'document_number_allocations',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_ledger_entry_id')
+                $table->foreignId(
+                    'customer_ledger_entry_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('customer_ledger_entries')
+                    ->constrained(
+                        'customer_ledger_entries',
+                    )
                     ->restrictOnDelete();
 
-                $table->foreignId('customer_open_item_id')
+                $table->foreignId(
+                    'customer_open_item_id',
+                )
                     ->nullable()
                     ->unique()
-                    ->constrained('customer_open_items')
+                    ->constrained(
+                        'customer_open_items',
+                    )
                     ->restrictOnDelete();
 
-                $table->string('adjustment_number', 160)->nullable();
-                $table->date('adjustment_date');
-                $table->date('posting_date');
-                $table->char('currency_code', 3);
-                $table->decimal('exchange_rate', 20, 8)->default(1);
+                $table->string(
+                    'adjustment_number',
+                    160,
+                )->nullable();
 
-                $table->string('direction', 20)
-                    ->comment('debit, credit');
+                $table->date(
+                    'adjustment_date',
+                );
 
-                $table->string('customer_name', 160);
-                $table->string('customer_code', 60);
-                $table->string('offset_account_code', 50);
-                $table->string('offset_account_name', 160);
+                $table->date(
+                    'posting_date',
+                );
 
-                $table->string('status', 30)
+                $table->char(
+                    'currency_code',
+                    3,
+                );
+
+                $table->decimal(
+                    'exchange_rate',
+                    20,
+                    8,
+                )->default(1);
+
+                $table->string(
+                    'direction',
+                    20,
+                )->comment(
+                    'debit, credit',
+                );
+
+                $table->string(
+                    'customer_name',
+                    160,
+                );
+
+                $table->string(
+                    'customer_code',
+                    60,
+                );
+
+                $table->string(
+                    'offset_account_code',
+                    50,
+                );
+
+                $table->string(
+                    'offset_account_name',
+                    160,
+                );
+
+                $table->string(
+                    'status',
+                    30,
+                )
                     ->default('draft')
                     ->comment(
                         'draft, submitted, approved, posted, reversed, cancelled',
                     );
 
-                $table->decimal('amount', 20, 6);
-                $table->decimal('base_amount', 20, 6)->default(0);
-                $table->string('reason', 500);
-                $table->text('notes')->nullable();
-                $table->unsignedInteger('revision')->default(1);
+                $table->decimal(
+                    'amount',
+                    20,
+                    6,
+                );
 
-                $table->foreignId('created_by_user_id')
+                $table->decimal(
+                    'base_amount',
+                    20,
+                    6,
+                )->default(0);
+
+                $table->string(
+                    'reason',
+                    500,
+                );
+
+                $table->text(
+                    'notes',
+                )->nullable();
+
+                $table->unsignedInteger(
+                    'revision',
+                )->default(1);
+
+                $table->foreignId(
+                    'created_by_user_id',
+                )
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->foreignId('submitted_by_user_id')
+                $table->foreignId(
+                    'submitted_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('submitted_at')->nullable();
+                $table->timestamp(
+                    'submitted_at',
+                )->nullable();
 
-                $table->foreignId('approved_by_user_id')
+                $table->foreignId(
+                    'approved_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('approved_at')->nullable();
+                $table->timestamp(
+                    'approved_at',
+                )->nullable();
 
-                $table->foreignId('posted_by_user_id')
+                $table->foreignId(
+                    'posted_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('posted_at')->nullable();
+                $table->timestamp(
+                    'posted_at',
+                )->nullable();
 
-                $table->string('accounting_posting_reference', 190)
-                    ->nullable();
+                $table->string(
+                    'accounting_posting_reference',
+                    190,
+                )->nullable();
 
-                $table->date('reversal_posting_date')->nullable();
+                $table->date(
+                    'reversal_posting_date',
+                )->nullable();
 
-                $table->foreignId('reversed_by_user_id')
+                $table->foreignId(
+                    'reversed_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('reversed_at')->nullable();
-                $table->string('reversal_reason', 500)->nullable();
+                $table->timestamp(
+                    'reversed_at',
+                )->nullable();
 
-                $table->string('accounting_reversal_reference', 190)
-                    ->nullable();
+                $table->string(
+                    'reversal_reason',
+                    500,
+                )->nullable();
 
-                $table->foreignId('cancelled_by_user_id')
+                $table->string(
+                    'accounting_reversal_reference',
+                    190,
+                )->nullable();
+
+                $table->foreignId(
+                    'cancelled_by_user_id',
+                )
                     ->nullable()
                     ->constrained('users')
                     ->restrictOnDelete();
 
-                $table->timestamp('cancelled_at')->nullable();
-                $table->string('cancellation_reason', 500)->nullable();
+                $table->timestamp(
+                    'cancelled_at',
+                )->nullable();
+
+                $table->string(
+                    'cancellation_reason',
+                    500,
+                )->nullable();
 
                 $table->timestamps();
                 $table->softDeletes();
 
                 $table->unique(
-                    ['tenant_id', 'adjustment_number'],
+                    [
+                        'tenant_id',
+                        'adjustment_number',
+                    ],
                     'customer_ar_adjustments_tenant_number_unique',
                 );
 
                 $table->index(
-                    ['tenant_id', 'branch_id', 'status', 'posting_date'],
+                    [
+                        'tenant_id',
+                        'branch_id',
+                        'status',
+                        'posting_date',
+                    ],
                     'customer_ar_adjustments_branch_status_date_index',
                 );
 
                 $table->index(
-                    ['tenant_id', 'customer_id', 'status'],
+                    [
+                        'tenant_id',
+                        'customer_id',
+                        'status',
+                    ],
                     'customer_ar_adjustments_customer_status_index',
                 );
             },
@@ -552,10 +956,24 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('customer_ar_adjustments');
-        Schema::dropIfExists('customer_refund_allocations');
-        Schema::dropIfExists('customer_refunds');
-        Schema::dropIfExists('customer_credit_application_lines');
-        Schema::dropIfExists('customer_credit_applications');
+        Schema::dropIfExists(
+            'customer_ar_adjustments',
+        );
+
+        Schema::dropIfExists(
+            'customer_refund_allocations',
+        );
+
+        Schema::dropIfExists(
+            'customer_refunds',
+        );
+
+        Schema::dropIfExists(
+            'customer_credit_application_lines',
+        );
+
+        Schema::dropIfExists(
+            'customer_credit_applications',
+        );
     }
 };

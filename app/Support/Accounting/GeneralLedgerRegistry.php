@@ -338,6 +338,12 @@ final class GeneralLedgerRegistry
             'account_subtype' => 'finance_cost',
             'control_type' => null,
         ],
+        'retained_earnings' => [
+            'label' => 'Retained Earnings',
+            'account_type' => 'equity',
+            'account_subtype' => 'retained_earnings',
+            'control_type' => null,
+        ],
         'bank_interest_income' => [
             'label' => 'Bank Interest Income',
             'account_type' => 'revenue',
@@ -369,6 +375,8 @@ final class GeneralLedgerRegistry
         'treasury_transfer_reversal' => 'Treasury Transfer Reversal',
         'treasury_adjustment' => 'Treasury Adjustment',
         'treasury_adjustment_reversal' => 'Treasury Adjustment Reversal',
+        'year_end_closing' => 'Year-end Closing',
+        'year_end_closing_reversal' => 'Year-end Closing Reversal',
         'customer_dispatch' => 'Customer Dispatch',
         'customer_dispatch_reversal' => 'Customer Dispatch Reversal',
         'sales_invoice' => 'Sales Invoice',
