@@ -9,6 +9,7 @@
             "DOM",
             "DOM.Iterable"
         ],
+        "allowJs": true,
         "allowImportingTsExtensions": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
@@ -25,6 +26,9 @@
         "paths": {
             "@/*": [
                 "resources/js/*"
+            ],
+            "ziggy-js": [
+                "vendor/tightenco/ziggy"
             ]
         },
         "types": [
@@ -35,6 +39,7 @@
     "include": [
         "resources/js/**/*.ts",
         "resources/js/**/*.tsx",
+        "resources/js/**/*.js",
         "resources/js/**/*.vue",
         "resources/js/**/*.d.ts",
         "vite.config.ts"
