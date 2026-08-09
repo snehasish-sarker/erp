@@ -11,15 +11,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
 
-/**
- * @mixin Model
- * @phpstan-require-extends Model
- */
 trait BelongsToTenant
 {
     public static function bootBelongsToTenant(): void
     {
-        static::addGlobalScope(
+        forward_static_call(
+            [static::class, 'addGlobalScope'],
             'tenant',
             static function (Builder $builder): void {
                 $tenantId = app(TenantContext::class)->id();
@@ -37,21 +34,34 @@ trait BelongsToTenant
             },
         );
 
-        static::creating(
+        forward_static_call(
+            [static::class, 'creating'],
             static function (Model $model): void {
-                if ($model->getAttribute('tenant_id') !== null) {
-                    return;
-                }
-
                 $tenantId = app(TenantContext::class)->id();
 
                 if ($tenantId === null) {
                     throw new LogicException(
-                        'A tenant context is required to create this record.',
+                        'A tenant-scoped model cannot be created without an active tenant context.',
                     );
                 }
 
-                $model->setAttribute('tenant_id', $tenantId);
+                $existingTenantId = $model->getAttribute(
+                    'tenant_id',
+                );
+
+                if (
+                    $existingTenantId !== null
+                    && (int) $existingTenantId !== $tenantId
+                ) {
+                    throw new LogicException(
+                        'A tenant-scoped model cannot be created for a different tenant.',
+                    );
+                }
+
+                $model->setAttribute(
+                    'tenant_id',
+                    $tenantId,
+                );
             },
         );
     }
@@ -61,6 +71,9 @@ trait BelongsToTenant
      */
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->belongsTo(
+            Tenant::class,
+            'tenant_id',
+        );
     }
 }

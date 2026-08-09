@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Organisation\BranchAccessService;
 use App\Support\Notifications\UserNotificationPresenter;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -21,6 +22,7 @@ final class HandleInertiaRequests extends Middleware
     public function __construct(
         private readonly UserNotificationPresenter $notificationPresenter,
         private readonly BranchAccessService $branchAccessService,
+        private readonly TenantContext $tenantContext,
     ) {
     }
 
@@ -42,7 +44,9 @@ final class HandleInertiaRequests extends Middleware
                 'Wholesale Distribution ERP',
             ),
 
-            'auth' => $this->getAuthData($request),
+            'auth' => $this->getAuthData(
+                $request,
+            ),
 
             'headerNotifications' => fn (): array =>
                 $this->getHeaderNotificationData(
@@ -83,14 +87,55 @@ final class HandleInertiaRequests extends Middleware
      *     }
      * }
      */
-    private function getAuthData(Request $request): array
-    {
+    private function getAuthData(
+        Request $request,
+    ): array {
         $user = $request->user();
 
         if (!$user instanceof User) {
+            return $this->emptyAuthData();
+        }
+
+        $tenant = $user
+            ->tenant()
+            ->first();
+
+        /*
+         * Public authentication routes such as /login do not run through
+         * tenant.context middleware.
+         *
+         * It is possible for an authenticated session to reach one of these
+         * routes temporarily, for example immediately after login or when
+         * navigating back to the login URL.
+         *
+         * Do not resolve tenant-team roles, permissions, branch access, or
+         * tenant-scoped resources until TenantContext has been initialized
+         * by SetTenantContext.
+         */
+        if ($this->tenantContext->id() === null) {
             return [
-                'user' => null,
-                'tenant' => null,
+                'user' => [
+                    'id' => (int) $user->getKey(),
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'status' => $user->status,
+                    'avatar' => null,
+                ],
+
+                'tenant' => $tenant === null
+                    ? null
+                    : [
+                        'id' => (int) $tenant->getKey(),
+                        'name' => $tenant->name,
+                        'code' => $tenant->code,
+                        'slug' => $tenant->slug,
+                        'status' => $tenant->status,
+                        'currency_code' =>
+                            $tenant->currency_code,
+                        'timezone' =>
+                            $tenant->timezone,
+                    ],
+
                 'roles' => [],
                 'permissions' => [],
 
@@ -101,8 +146,6 @@ final class HandleInertiaRequests extends Middleware
                 ],
             ];
         }
-
-        $tenant = $user->tenant()->first();
 
         /*
          * Ensure role and permission information is loaded using the active
@@ -126,11 +169,15 @@ final class HandleInertiaRequests extends Middleware
 
         $assignedBranch = $this
             ->branchAccessService
-            ->assignedBranch($user);
+            ->assignedBranch(
+                $user,
+            );
 
         $canAccessAllBranches = $this
             ->branchAccessService
-            ->hasCompanyWideAccess($user);
+            ->hasCompanyWideAccess(
+                $user,
+            );
 
         return [
             'user' => [
@@ -149,10 +196,8 @@ final class HandleInertiaRequests extends Middleware
                     'code' => $tenant->code,
                     'slug' => $tenant->slug,
                     'status' => $tenant->status,
-
                     'currency_code' =>
                         $tenant->currency_code,
-
                     'timezone' =>
                         $tenant->timezone,
                 ],
@@ -175,13 +220,10 @@ final class HandleInertiaRequests extends Middleware
                             'id' => (int) (
                                 $assignedBranch->getKey()
                             ),
-
                             'name' =>
                                 $assignedBranch->name,
-
                             'code' =>
                                 $assignedBranch->code,
-
                             'status' =>
                                 $assignedBranch->status,
                         ],
@@ -200,7 +242,16 @@ final class HandleInertiaRequests extends Middleware
     ): array {
         $user = $request->user();
 
-        if (!$user instanceof User) {
+        /*
+         * Notifications are tenant-scoped.
+         *
+         * Public authentication routes do not have an initialized tenant
+         * context, so never query tenant-scoped notifications from them.
+         */
+        if (
+            !$user instanceof User
+            || $this->tenantContext->id() === null
+        ) {
             return [
                 'unread_count' => 0,
                 'items' => [],
@@ -241,7 +292,9 @@ final class HandleInertiaRequests extends Middleware
                     UserNotification $notification,
                 ): array => $this
                     ->notificationPresenter
-                    ->present($notification),
+                    ->present(
+                        $notification,
+                    ),
             )
             ->values()
             ->all();
@@ -249,6 +302,35 @@ final class HandleInertiaRequests extends Middleware
         return [
             'unread_count' => $unreadCount,
             'items' => $items,
+        ];
+    }
+
+    /**
+     * @return array{
+     *     user: null,
+     *     tenant: null,
+     *     roles: list<string>,
+     *     permissions: list<string>,
+     *     branch_access: array{
+     *         mode: string,
+     *         can_access_all: bool,
+     *         assigned_branch: null
+     *     }
+     * }
+     */
+    private function emptyAuthData(): array
+    {
+        return [
+            'user' => null,
+            'tenant' => null,
+            'roles' => [],
+            'permissions' => [],
+
+            'branch_access' => [
+                'mode' => 'none',
+                'can_access_all' => false,
+                'assigned_branch' => null,
+            ],
         ];
     }
 }

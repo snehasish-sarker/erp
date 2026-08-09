@@ -36,12 +36,23 @@ trait Auditable
             },
         );
 
-        static::restored(
-            static function (Model $model): void {
-                app(AuditLogService::class)
-                    ->recordRestored($model);
-            },
-        );
+        /*
+         * restored() is provided by Laravel's SoftDeletes trait.
+         *
+         * Many auditable ERP models are not soft-deletable, so calling
+         * static::restored() unconditionally causes Eloquent to fall
+         * through to Model::__callStatic(), which constructs the model
+         * again while that same model is still booting.
+         */
+        if (method_exists(static::class, 'restored')) {
+            forward_static_call(
+                [static::class, 'restored'],
+                static function (Model $model): void {
+                    app(AuditLogService::class)
+                        ->recordRestored($model);
+                },
+            );
+        }
     }
 
     /**
