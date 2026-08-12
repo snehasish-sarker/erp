@@ -379,7 +379,7 @@ final class CustomerCreditApplicationService
     private function positiveMoney(mixed $value, string $field): BigDecimal
     {
         try {
-            $amount = BigDecimal::of((string) $value)->toScale(self::SCALE, RoundingMode::UNNECESSARY);
+            $amount = BigDecimal::of((string) $value)->toScale(self::SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages([$field => ['The amount must be positive with at most 6 decimal places.']]);
         }
@@ -433,6 +433,6 @@ final class CustomerCreditApplicationService
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::SCALE, RoundingMode::HalfUp)->__toString();
     }
 }

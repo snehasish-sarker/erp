@@ -205,7 +205,7 @@ final class ManagementBudgetService
         foreach ($lines as $index => $line) {
             $accountId = (int) ($line['account_id'] ?? 0);
             $month = (int) ($line['month_number'] ?? 0);
-            $amount = BigDecimal::of((string) ($line['amount'] ?? '0'))->toScale(self::SCALE, RoundingMode::HALF_UP);
+            $amount = BigDecimal::of((string) ($line['amount'] ?? '0'))->toScale(self::SCALE, RoundingMode::HalfUp);
             $key = $accountId.':'.$month;
 
             if (isset($seen[$key])) {

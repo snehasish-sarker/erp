@@ -749,7 +749,7 @@ final class CustomerStatementService
         return BigDecimal::of((string) ($value ?? '0'))
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 
@@ -758,7 +758,7 @@ final class CustomerStatementService
         return $value
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
     }

@@ -229,7 +229,7 @@ final class PeriodCloseService
             'passed_checks' => $passed,
             'warning_checks' => $warnings,
             'failed_checks' => $failed,
-            'total_reconciliation_difference' => $difference->toScale(6, RoundingMode::HALF_UP)->__toString(),
+            'total_reconciliation_difference' => $difference->toScale(6, RoundingMode::HalfUp)->__toString(),
             'closing_journal_ids' => null,
             'prepared_by_user_id' => $actor->getKey(),
             'prepared_at' => now(),

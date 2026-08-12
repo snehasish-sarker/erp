@@ -105,7 +105,7 @@ final class GoodsReceiptJournalBuilder
                 ->multipliedBy($lineUnitCost)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             if (!$calculatedLineTotal->isEqualTo($lineTotalCost)) {
@@ -118,7 +118,7 @@ final class GoodsReceiptJournalBuilder
                 ->plus($lineAcceptedQuantity)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             if ($lineAcceptedQuantity->isZero()) {
@@ -130,7 +130,7 @@ final class GoodsReceiptJournalBuilder
                     ->plus($lineTotalCost)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
                 continue;
@@ -155,7 +155,7 @@ final class GoodsReceiptJournalBuilder
                 ->plus($lineTotalCost)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
         }
 
@@ -176,7 +176,7 @@ final class GoodsReceiptJournalBuilder
             ->plus($nonStockValue)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if ($acceptedQuantity->isZero()) {
@@ -463,7 +463,7 @@ final class GoodsReceiptJournalBuilder
                 (string) $value,
             )->toScale(
                 8,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (NumberFormatException|\ArithmeticException) {
             throw new LogicException(
@@ -489,7 +489,7 @@ final class GoodsReceiptJournalBuilder
                 (string) $value,
             )->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (NumberFormatException|\ArithmeticException) {
             throw new LogicException(

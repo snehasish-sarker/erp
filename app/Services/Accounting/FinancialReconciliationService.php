@@ -502,6 +502,6 @@ final class FinancialReconciliationService
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::SCALE, RoundingMode::HalfUp)->__toString();
     }
 }

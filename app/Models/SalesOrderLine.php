@@ -162,7 +162,7 @@ final class SalesOrderLine extends Model
         }
 
         return $remaining
-            ->toScale(6, RoundingMode::HALF_UP)
+            ->toScale(6, RoundingMode::HalfUp)
             ->__toString();
     }
 }

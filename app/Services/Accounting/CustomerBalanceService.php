@@ -37,7 +37,7 @@ final class CustomerBalanceService
         )
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
     }

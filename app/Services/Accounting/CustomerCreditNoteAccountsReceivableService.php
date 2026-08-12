@@ -74,7 +74,7 @@ final class CustomerCreditNoteAccountsReceivableService
         }
 
         $amount = BigDecimal::of((string) $creditNote->total_amount)
-            ->toScale(self::SCALE, RoundingMode::UNNECESSARY);
+            ->toScale(self::SCALE, RoundingMode::Unnecessary);
 
         if (!$amount->isGreaterThan(BigDecimal::zero())) {
             throw ValidationException::withMessages([
@@ -88,7 +88,7 @@ final class CustomerCreditNoteAccountsReceivableService
             ->multipliedBy(
                 BigDecimal::of((string) $creditNote->exchange_rate),
             )
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $ledger = CustomerLedgerEntry::query()->create([
             'branch_id' => $creditNote->branch_id,
@@ -195,7 +195,7 @@ final class CustomerCreditNoteAccountsReceivableService
                     allocationDate: $creditNote->credit_note_date,
                     postingDate: $creditNote->posting_date,
                     amount: $allocationAmount
-                        ->toScale(self::SCALE, RoundingMode::HALF_UP)
+                        ->toScale(self::SCALE, RoundingMode::HalfUp)
                         ->__toString(),
                     source: $creditNote,
                     actor: $actor,

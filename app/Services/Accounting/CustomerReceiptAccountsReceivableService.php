@@ -800,7 +800,7 @@ final class CustomerReceiptAccountsReceivableService
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
         }
 
@@ -1518,7 +1518,7 @@ final class CustomerReceiptAccountsReceivableService
             ->multipliedBy($exchangeRate)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 
@@ -1542,7 +1542,7 @@ final class CustomerReceiptAccountsReceivableService
                 (string) $value,
             )->toScale(
                 $scale,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
         } catch (ArithmeticException $exception) {
             throw new LogicException(

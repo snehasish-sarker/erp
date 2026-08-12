@@ -1623,7 +1623,7 @@ final class CustomerReceiptService
                     ->minus($allocated)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
         ];
@@ -2546,7 +2546,7 @@ final class CustomerReceiptService
                 )
                     ->toScale(
                         $scale,
-                        RoundingMode::UNNECESSARY,
+                        RoundingMode::Unnecessary,
                     );
         } catch (
             ArithmeticException

@@ -241,7 +241,7 @@ const submit = (): void => {
         );
 
     form.credit_limit =
-        form.credit_limit.trim();
+        String(form.credit_limit).trim();
 
     form.notes = form.notes.trim();
 

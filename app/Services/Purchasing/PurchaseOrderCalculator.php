@@ -122,7 +122,7 @@ final class PurchaseOrderCalculator
             ->multipliedBy($unitPrice)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $this->ensureMoneyFitsColumn(
@@ -150,7 +150,7 @@ final class PurchaseOrderCalculator
             ->minus($discountAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $taxAmount = $taxableAmount
@@ -158,14 +158,14 @@ final class PurchaseOrderCalculator
             ->dividedBy(
                 BigDecimal::of('100'),
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $lineTotal = $taxableAmount
             ->plus($taxAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $this->ensureMoneyFitsColumn(
@@ -272,18 +272,18 @@ final class PurchaseOrderCalculator
 
         $subtotal = $subtotal->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $discountTotal =
             $discountTotal->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $taxTotal = $taxTotal->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $shipping = $this->normalizeDecimal(
@@ -323,7 +323,7 @@ final class PurchaseOrderCalculator
             ->plus($other)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $this->ensureMoneyFitsColumn(
@@ -458,7 +458,7 @@ final class PurchaseOrderCalculator
         try {
             $decimal = $decimal->toScale(
                 $scale,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (ArithmeticException) {
             throw ValidationException::withMessages([

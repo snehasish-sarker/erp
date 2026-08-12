@@ -1851,7 +1851,7 @@ final class AccountsPayableAgingService
             (string) ($value ?? '0'),
         )->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         )->__toString();
     }
 
@@ -1862,7 +1862,7 @@ final class AccountsPayableAgingService
             (string) ($value ?? '0'),
         )->toScale(
             self::RATE_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         )->__toString();
     }
 

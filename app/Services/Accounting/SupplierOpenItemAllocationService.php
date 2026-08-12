@@ -168,7 +168,7 @@ final class SupplierOpenItemAllocationService
             ->minus($creditBaseAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $this->applyAmountToOpenItem(
@@ -584,7 +584,7 @@ final class SupplierOpenItemAllocationService
             ->plus($amount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
 
@@ -592,7 +592,7 @@ final class SupplierOpenItemAllocationService
             ->minus($amount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
 
@@ -603,7 +603,7 @@ final class SupplierOpenItemAllocationService
                 ->plus($baseAmount)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -612,7 +612,7 @@ final class SupplierOpenItemAllocationService
                 ->minus($baseAmount)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -676,7 +676,7 @@ final class SupplierOpenItemAllocationService
             ->minus($amount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
 
@@ -684,7 +684,7 @@ final class SupplierOpenItemAllocationService
             $newOutstanding
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -693,7 +693,7 @@ final class SupplierOpenItemAllocationService
                 ->minus($baseAmount)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -701,7 +701,7 @@ final class SupplierOpenItemAllocationService
             $newBaseOutstanding
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -762,7 +762,7 @@ final class SupplierOpenItemAllocationService
             )
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         return $baseAmount->isGreaterThan(
@@ -974,7 +974,7 @@ final class SupplierOpenItemAllocationService
             return BigDecimal::of((string) $value)
                 ->toScale(
                     $scale,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
         } catch (ArithmeticException $exception) {
             throw new LogicException(

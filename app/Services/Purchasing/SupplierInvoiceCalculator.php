@@ -87,14 +87,14 @@ final class SupplierInvoiceCalculator
             (string) $purchaseOrderLine->unit_price,
         )->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $grossAmount = $invoicedQuantity
             ->multipliedBy($invoiceUnitPrice)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if ($discountAmount->isGreaterThan($grossAmount)) {
@@ -109,7 +109,7 @@ final class SupplierInvoiceCalculator
             ->minus($discountAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $taxAmount = $taxableAmount
@@ -117,27 +117,27 @@ final class SupplierInvoiceCalculator
             ->dividedBy(
                 BigDecimal::of('100'),
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $lineTotal = $taxableAmount
             ->plus($taxAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $expectedGrossAmount = $invoicedQuantity
             ->multipliedBy($purchaseOrderUnitPrice)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $ratio = $invoicedQuantity->dividedBy(
             $purchaseOrderQuantity,
             12,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $expectedDiscountAmount = BigDecimal::of(
@@ -146,7 +146,7 @@ final class SupplierInvoiceCalculator
             ->multipliedBy($ratio)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $expectedTaxAmount = BigDecimal::of(
@@ -155,7 +155,7 @@ final class SupplierInvoiceCalculator
             ->multipliedBy($ratio)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $expectedLineTotal = $expectedGrossAmount
@@ -163,14 +163,14 @@ final class SupplierInvoiceCalculator
             ->plus($expectedTaxAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $receiptQuantityVariance = $invoicedQuantity
             ->minus($matchedQuantity)
             ->toScale(
                 self::QUANTITY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $cumulativeInvoicedQuantity =
@@ -196,7 +196,7 @@ final class SupplierInvoiceCalculator
 
         $quantityVariance = $quantityVariance->toScale(
             self::QUANTITY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $priceVarianceAmount = $invoiceUnitPrice
@@ -204,28 +204,28 @@ final class SupplierInvoiceCalculator
             ->multipliedBy($invoicedQuantity)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $discountVarianceAmount = $discountAmount
             ->minus($expectedDiscountAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $taxVarianceAmount = $taxAmount
             ->minus($expectedTaxAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $totalVarianceAmount = $lineTotal
             ->minus($expectedLineTotal)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $matchStatus = $this->lineMatchStatus(
@@ -260,7 +260,7 @@ final class SupplierInvoiceCalculator
             'matched_quantity' => $matchedQuantity
                 ->toScale(
                     self::QUANTITY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString(),
             'purchase_order_unit_price' =>
@@ -275,7 +275,7 @@ final class SupplierInvoiceCalculator
             )
                 ->toScale(
                     self::TAX_RATE_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString(),
             'invoice_tax_rate' => $invoiceTaxRate->__toString(),
@@ -378,7 +378,7 @@ final class SupplierInvoiceCalculator
             ->plus($rounding)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if ($totalAmount->isNegative()) {
@@ -404,7 +404,7 @@ final class SupplierInvoiceCalculator
             $result[$field] = $value
                 ->toScale(
                     $scale,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
         }
@@ -540,7 +540,7 @@ final class SupplierInvoiceCalculator
         try {
             $decimal = $decimal->toScale(
                 $scale,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (ArithmeticException) {
             throw ValidationException::withMessages([

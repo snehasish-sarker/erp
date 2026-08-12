@@ -65,7 +65,7 @@ final class AccountsReceivablePostingService
             )
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $reference = sprintf(

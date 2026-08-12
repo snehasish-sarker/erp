@@ -813,7 +813,7 @@ final class CustomerDispatchService
                                 ->plus($quantity)
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -1175,7 +1175,7 @@ final class CustomerDispatchService
                                 ->minus($quantity)
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -2246,7 +2246,7 @@ final class CustomerDispatchService
                 $value,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (\ArithmeticException) {
             throw ValidationException::withMessages([
@@ -2278,7 +2278,7 @@ final class CustomerDispatchService
         return $value
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
     }

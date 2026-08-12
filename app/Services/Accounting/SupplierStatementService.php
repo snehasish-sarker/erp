@@ -205,7 +205,7 @@ final class SupplierStatementService
             )
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $runningCurrencyBalances =
@@ -323,7 +323,7 @@ final class SupplierStatementService
                             )
                             ->toScale(
                                 self::MONEY_SCALE,
-                                RoundingMode::HALF_UP,
+                                RoundingMode::HalfUp,
                             );
 
                     $baseChange = $this->money(
@@ -337,7 +337,7 @@ final class SupplierStatementService
                         )
                         ->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         );
 
                     $runningCurrencyBalances[
@@ -352,7 +352,7 @@ final class SupplierStatementService
                         )
                         ->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         );
 
                     $runningBaseBalance =
@@ -360,7 +360,7 @@ final class SupplierStatementService
                             ->plus($baseChange)
                             ->toScale(
                                 self::MONEY_SCALE,
-                                RoundingMode::HALF_UP,
+                                RoundingMode::HalfUp,
                             );
 
                     yield [
@@ -540,7 +540,7 @@ final class SupplierStatementService
                 )
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $baseChange = $this->money(
@@ -553,7 +553,7 @@ final class SupplierStatementService
                 )
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $runningCurrencyBalances[$currency] = (
@@ -563,7 +563,7 @@ final class SupplierStatementService
                 ->plus($transactionChange)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $runningBaseBalance =
@@ -571,7 +571,7 @@ final class SupplierStatementService
                     ->plus($baseChange)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $entryData[] = [
@@ -698,7 +698,7 @@ final class SupplierStatementService
                             )
                             ->toScale(
                                 self::MONEY_SCALE,
-                                RoundingMode::HALF_UP,
+                                RoundingMode::HalfUp,
                             )
                             ->__toString(),
                 ],
@@ -896,7 +896,7 @@ final class SupplierStatementService
                         )
                         ->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         );
             }
 
@@ -912,7 +912,7 @@ final class SupplierStatementService
                 )
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
         }
 
@@ -931,7 +931,7 @@ final class SupplierStatementService
                 ),
             )->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
             $baseChange = $this->money(
@@ -942,7 +942,7 @@ final class SupplierStatementService
                 ),
             )->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
             $runningCurrencyBalances[$currency] =
@@ -951,14 +951,14 @@ final class SupplierStatementService
                     ->plus($transactionChange)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $runningBaseBalance = $runningBaseBalance
                 ->plus($baseChange)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $entryData[] = [
@@ -1076,7 +1076,7 @@ final class SupplierStatementService
                         ),
                     )->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )->__toString(),
                 ],
                 'currencies' => $this->closingCurrencySummary(
@@ -1242,7 +1242,7 @@ final class SupplierStatementService
                             ->minus($debit)
                             ->toScale(
                                 self::MONEY_SCALE,
-                                RoundingMode::HALF_UP,
+                                RoundingMode::HalfUp,
                             )
                             ->__toString(),
                     ];
@@ -1282,7 +1282,7 @@ final class SupplierStatementService
                 ->minus($debit)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString(),
         ];
@@ -1373,7 +1373,7 @@ final class SupplierStatementService
                             ),
                         )->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )->__toString(),
                     ];
                 },
@@ -1560,7 +1560,7 @@ final class SupplierStatementService
             (string) ($value ?? '0'),
         )->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
     }
 

@@ -522,7 +522,7 @@ final class JournalEntryValidationService
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
                 $baseCredit = $credit
@@ -531,7 +531,7 @@ final class JournalEntryValidationService
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
             }
 
@@ -933,7 +933,7 @@ final class JournalEntryValidationService
                 (string) $value,
             )->toScale(
                 $scale,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
         } catch (NumberFormatException) {
             throw ValidationException::withMessages([

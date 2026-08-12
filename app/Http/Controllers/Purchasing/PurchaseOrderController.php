@@ -973,7 +973,10 @@ final class PurchaseOrderController extends Controller
                             $currentBranchId
                             !== null
                         ) {
-                            $query->orWhereKey(
+                            $query->orWhere(
+                                $query
+                                    ->getModel()
+                                    ->getQualifiedKeyName(),
                                 $currentBranchId,
                             );
                         }
@@ -1018,7 +1021,10 @@ final class PurchaseOrderController extends Controller
                         $currentWarehouseId
                         !== null
                     ) {
-                        $query->orWhereKey(
+                        $query->orWhere(
+                            $query
+                                ->getModel()
+                                ->getQualifiedKeyName(),
                             $currentWarehouseId,
                         );
                     }
@@ -1052,7 +1058,10 @@ final class PurchaseOrderController extends Controller
                         $currentSupplierId
                         !== null
                     ) {
-                        $query->orWhereKey(
+                        $query->orWhere(
+                            $query
+                                ->getModel()
+                                ->getQualifiedKeyName(),
                             $currentSupplierId,
                         );
                     }

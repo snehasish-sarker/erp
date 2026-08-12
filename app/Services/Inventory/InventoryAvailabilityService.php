@@ -343,7 +343,7 @@ final class InventoryAvailabilityService
     ): string {
         return $value->toScale(
             self::SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         )->__toString();
     }
 }

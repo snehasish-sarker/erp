@@ -36,7 +36,7 @@ final class PurchaseReturnCalculator
                     ->accepted_quantity,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $returnedQuantity =
@@ -45,7 +45,7 @@ final class PurchaseReturnCalculator
                     ->returned_quantity,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $reservedQuantity =
@@ -54,7 +54,7 @@ final class PurchaseReturnCalculator
                     ->return_reserved_quantity,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $returnableQuantity =
@@ -63,7 +63,7 @@ final class PurchaseReturnCalculator
                 ->minus($reservedQuantity)
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $supplierUnitCost =
@@ -72,7 +72,7 @@ final class PurchaseReturnCalculator
                     ->unit_cost,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $supplierTotalCost =
@@ -82,7 +82,7 @@ final class PurchaseReturnCalculator
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         return [
@@ -106,7 +106,7 @@ final class PurchaseReturnCalculator
                 $returnQuantity
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -197,7 +197,7 @@ final class PurchaseReturnCalculator
                 $totalReturnQuantity
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -205,7 +205,7 @@ final class PurchaseReturnCalculator
                 $totalSupplierValue
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -213,7 +213,7 @@ final class PurchaseReturnCalculator
                 $totalInventoryValue
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -221,7 +221,7 @@ final class PurchaseReturnCalculator
                 $totalCostVariance
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
         ];

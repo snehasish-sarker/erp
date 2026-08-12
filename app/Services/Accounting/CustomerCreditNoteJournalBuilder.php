@@ -320,7 +320,7 @@ final class CustomerCreditNoteJournalBuilder
     private function decimal(BigDecimal $value): string
     {
         return $value
-            ->toScale(self::SCALE, RoundingMode::HALF_UP)
+            ->toScale(self::SCALE, RoundingMode::HalfUp)
             ->__toString();
     }
 

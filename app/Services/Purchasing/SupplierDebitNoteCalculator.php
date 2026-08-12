@@ -33,25 +33,25 @@ final class SupplierDebitNoteCalculator
         $returnQuantity =
             $returnQuantity->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $unitPrice =
             $unitPrice->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $discountPerUnit =
             $discountPerUnit->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $taxRate =
             $taxRate->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if (
@@ -89,7 +89,7 @@ final class SupplierDebitNoteCalculator
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $discountAmount =
@@ -99,7 +99,7 @@ final class SupplierDebitNoteCalculator
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         if (
@@ -122,7 +122,7 @@ final class SupplierDebitNoteCalculator
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $taxAmount =
@@ -133,7 +133,7 @@ final class SupplierDebitNoteCalculator
                 ->dividedBy(
                     BigDecimal::of('100'),
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $totalAmount =
@@ -143,7 +143,7 @@ final class SupplierDebitNoteCalculator
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         return [
@@ -262,7 +262,7 @@ final class SupplierDebitNoteCalculator
                 $grossAmount
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -270,7 +270,7 @@ final class SupplierDebitNoteCalculator
                 $discountAmount
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -278,7 +278,7 @@ final class SupplierDebitNoteCalculator
                 $subtotal
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -286,7 +286,7 @@ final class SupplierDebitNoteCalculator
                 $taxAmount
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -294,7 +294,7 @@ final class SupplierDebitNoteCalculator
                 $totalAmount
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
         ];

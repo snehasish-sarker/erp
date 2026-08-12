@@ -10,6 +10,7 @@ import {
     reactive,
     ref,
 } from 'vue';
+import DateTimeInput from '@/Components/Platform/DateTimeInput.vue';
 import PlatformAdminLayout from '@/Layouts/PlatformAdminLayout.vue';
 import type {
     PlatformManualSubscriptionFormData,
@@ -846,110 +847,54 @@ const metricCards = [
                     </div>
 
                     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Subscription starts
-                            </label>
-                            <input
-                                v-model="allocationForm.starts_at"
-                                type="datetime-local"
-                                class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-                            >
-                            <p v-if="allocationForm.errors.starts_at" class="mt-1 text-sm text-error-500">
-                                {{ allocationForm.errors.starts_at }}
-                            </p>
-                        </div>
+                        <DateTimeInput
+                            v-model="allocationForm.starts_at"
+                            label="Subscription starts"
+                            :error="allocationForm.errors.starts_at"
+                        />
 
-                        <div v-if="allocationForm.status === 'trial'">
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Trial ends
-                            </label>
-                            <input
-                                v-model="allocationForm.trial_ends_at"
-                                type="datetime-local"
-                                class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-                            >
-                            <p v-if="allocationForm.errors.trial_ends_at" class="mt-1 text-sm text-error-500">
-                                {{ allocationForm.errors.trial_ends_at }}
-                            </p>
-                        </div>
+                        <DateTimeInput
+                            v-if="allocationForm.status === 'trial'"
+                            v-model="allocationForm.trial_ends_at"
+                            label="Trial ends"
+                            :error="allocationForm.errors.trial_ends_at"
+                        />
 
                         <template v-if="allocationForm.status !== 'trial'">
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Current period starts
-                                </label>
-                                <input
-                                    v-model="allocationForm.current_period_starts_at"
-                                    type="datetime-local"
-                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-                                >
-                                <p v-if="allocationForm.errors.current_period_starts_at" class="mt-1 text-sm text-error-500">
-                                    {{ allocationForm.errors.current_period_starts_at }}
-                                </p>
-                            </div>
+                            <DateTimeInput
+                                v-model="allocationForm.current_period_starts_at"
+                                label="Current period starts"
+                                :error="allocationForm.errors.current_period_starts_at"
+                            />
 
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Current period ends
-                                </label>
-                                <input
-                                    v-model="allocationForm.current_period_ends_at"
-                                    type="datetime-local"
-                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-                                >
-                                <p v-if="allocationForm.errors.current_period_ends_at" class="mt-1 text-sm text-error-500">
-                                    {{ allocationForm.errors.current_period_ends_at }}
-                                </p>
-                                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                    Leave blank for an indefinite active period.
-                                </p>
-                            </div>
+                            <DateTimeInput
+                                v-model="allocationForm.current_period_ends_at"
+                                label="Current period ends"
+                                :error="allocationForm.errors.current_period_ends_at"
+                                hint="Leave both date and time blank for an indefinite active period."
+                            />
                         </template>
 
                         <template v-if="allocationForm.status === 'past_due'">
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Past due since
-                                </label>
-                                <input
-                                    v-model="allocationForm.past_due_at"
-                                    type="datetime-local"
-                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-                                >
-                                <p v-if="allocationForm.errors.past_due_at" class="mt-1 text-sm text-error-500">
-                                    {{ allocationForm.errors.past_due_at }}
-                                </p>
-                            </div>
+                            <DateTimeInput
+                                v-model="allocationForm.past_due_at"
+                                label="Past due since"
+                                :error="allocationForm.errors.past_due_at"
+                            />
 
-                            <div>
-                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Grace ends
-                                </label>
-                                <input
-                                    v-model="allocationForm.grace_ends_at"
-                                    type="datetime-local"
-                                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-                                >
-                                <p v-if="allocationForm.errors.grace_ends_at" class="mt-1 text-sm text-error-500">
-                                    {{ allocationForm.errors.grace_ends_at }}
-                                </p>
-                            </div>
+                            <DateTimeInput
+                                v-model="allocationForm.grace_ends_at"
+                                label="Grace ends"
+                                :error="allocationForm.errors.grace_ends_at"
+                            />
                         </template>
 
-                        <div v-if="allocationForm.status === 'cancelled'">
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Subscription ends
-                            </label>
-                            <input
-                                v-model="allocationForm.ends_at"
-                                type="datetime-local"
-                                class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white"
-                            >
-                            <p v-if="allocationForm.errors.ends_at" class="mt-1 text-sm text-error-500">
-                                {{ allocationForm.errors.ends_at }}
-                            </p>
-                        </div>
+                        <DateTimeInput
+                            v-if="allocationForm.status === 'cancelled'"
+                            v-model="allocationForm.ends_at"
+                            label="Subscription ends"
+                            :error="allocationForm.errors.ends_at"
+                        />
                     </div>
 
                     <div class="rounded-xl bg-blue-50 p-4 text-sm text-blue-800 dark:bg-blue-500/10 dark:text-blue-200">

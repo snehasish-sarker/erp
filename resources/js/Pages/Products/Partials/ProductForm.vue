@@ -111,8 +111,8 @@ const submit = (): void => {
     form.slug = normalizeSlug(form.slug);
     form.barcode = form.barcode.trim();
     form.description = form.description.trim();
-    form.cost_price = form.cost_price.trim();
-    form.selling_price = form.selling_price.trim();
+    form.cost_price = String(form.cost_price).trim();
+    form.selling_price = String(form.selling_price).trim();
 
     if (
         props.mode === 'edit'

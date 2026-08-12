@@ -2,6 +2,7 @@
 import { usePage } from '@inertiajs/vue3';
 import {
     computed,
+    onMounted,
     onUnmounted,
     ref,
     watch,
@@ -17,6 +18,7 @@ interface ToastData {
 }
 
 const page = usePage();
+const isMounted = ref(false);
 const isVisible = ref(false);
 let dismissTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -99,13 +101,19 @@ const showToast = (): void => {
 watch(
     toast,
     (): void => {
-        showToast();
+        if (isMounted.value) {
+            showToast();
+        }
     },
     {
-        immediate: true,
         deep: true,
     },
 );
+
+onMounted((): void => {
+    isMounted.value = true;
+    showToast();
+});
 
 onUnmounted((): void => {
     if (dismissTimer !== null) {
@@ -125,7 +133,7 @@ onUnmounted((): void => {
             leave-to-class="translate-x-4 opacity-0"
         >
             <div
-                v-if="isVisible && toast"
+                v-if="isMounted && isVisible && toast"
                 class="fixed top-5 right-5 z-[100000] w-[calc(100%-2.5rem)] max-w-sm"
                 role="alert"
                 aria-live="polite"

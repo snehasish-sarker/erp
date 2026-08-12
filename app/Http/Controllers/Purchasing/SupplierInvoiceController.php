@@ -1240,7 +1240,7 @@ $today = now(
                     $accepted
                         ->toScale(
                             6,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
 
@@ -1248,7 +1248,7 @@ $today = now(
                     $invoiced
                         ->toScale(
                             6,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
 
@@ -1256,7 +1256,7 @@ $today = now(
                     $available
                         ->toScale(
                             6,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
             ];
@@ -1308,7 +1308,7 @@ $today = now(
                 $receivedQuantity
                     ->toScale(
                         6,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -1316,7 +1316,7 @@ $today = now(
                 $invoicedQuantity
                     ->toScale(
                         6,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -1327,7 +1327,7 @@ $today = now(
                     )
                     ->toScale(
                         6,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 

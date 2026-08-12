@@ -350,7 +350,7 @@ final class PurchaseReturnJournalBuilder
                     ->minus($inventoryValue)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
                 if (!$costVariance->isEqualTo($expectedVariance)) {
@@ -363,14 +363,14 @@ final class PurchaseReturnJournalBuilder
                     ->plus($inventoryValue)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
                 $totalCostVariance = $totalCostVariance
                     ->plus($costVariance)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
             } elseif ($line->product_type === 'non_stock') {
                 if (
@@ -391,7 +391,7 @@ final class PurchaseReturnJournalBuilder
                     ->plus($supplierValue)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
             } else {
                 throw new LogicException(
@@ -403,7 +403,7 @@ final class PurchaseReturnJournalBuilder
                 ->plus($supplierValue)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
         }
 
@@ -412,7 +412,7 @@ final class PurchaseReturnJournalBuilder
             ->plus($totalCostVariance)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if (!$reconstructedSupplierValue->isEqualTo($totalSupplierValue)) {
@@ -650,7 +650,7 @@ final class PurchaseReturnJournalBuilder
     ): void {
         $amount = $amount->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         if ($amount->isZero()) {
@@ -689,7 +689,7 @@ final class PurchaseReturnJournalBuilder
     ): void {
         $amount = $amount->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         if ($amount->isZero()) {
@@ -734,7 +734,7 @@ final class PurchaseReturnJournalBuilder
 
         $amount = $signedCreditAmount->abs()->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $lines[] = [
@@ -814,7 +814,7 @@ final class PurchaseReturnJournalBuilder
                 (string) $value,
             )->toScale(
                 self::EXCHANGE_RATE_SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (NumberFormatException|ArithmeticException) {
             throw new LogicException(
@@ -893,7 +893,7 @@ final class PurchaseReturnJournalBuilder
                 (string) $value,
             )->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (NumberFormatException|ArithmeticException) {
             throw new LogicException(

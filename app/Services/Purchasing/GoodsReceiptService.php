@@ -576,7 +576,7 @@ final class GoodsReceiptService
                                 )
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -957,7 +957,7 @@ final class GoodsReceiptService
                                 )
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -1410,7 +1410,7 @@ final class GoodsReceiptService
                     )
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             if (
@@ -1571,7 +1571,7 @@ final class GoodsReceiptService
                     )
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -1771,7 +1771,7 @@ final class GoodsReceiptService
                 $received
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -1779,7 +1779,7 @@ final class GoodsReceiptService
                 $accepted
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -1787,7 +1787,7 @@ final class GoodsReceiptService
                 $rejected
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
 
@@ -1795,7 +1795,7 @@ final class GoodsReceiptService
                 $inventoryValue
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString(),
         ];
@@ -1863,7 +1863,7 @@ final class GoodsReceiptService
             ->dividedBy(
                 $orderedQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
     }
@@ -1995,7 +1995,7 @@ final class GoodsReceiptService
                 !$decimal->isEqualTo(
                     $decimal->toScale(
                         0,
-                        RoundingMode::DOWN,
+                        RoundingMode::Down,
                     ),
                 )
             ) {
@@ -2022,7 +2022,7 @@ final class GoodsReceiptService
         try {
             $decimal->toScale(
                 $allowedPlaces,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (\ArithmeticException) {
             throw ValidationException::withMessages([
@@ -2124,7 +2124,7 @@ final class GoodsReceiptService
         $acceptedWhole =
             $accepted->toScale(
                 0,
-                RoundingMode::DOWN,
+                RoundingMode::Down,
             );
 
         if (
@@ -2223,7 +2223,7 @@ final class GoodsReceiptService
             $decimal =
                 $decimal->toScale(
                     self::SCALE,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
         } catch (\ArithmeticException) {
             throw ValidationException::withMessages([

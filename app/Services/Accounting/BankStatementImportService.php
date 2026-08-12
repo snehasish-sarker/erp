@@ -83,7 +83,7 @@ final class BankStatementImportService
 
         $calculatedClosing = BigDecimal::of($opening)
             ->plus($movement)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         if (!$calculatedClosing->isEqualTo(BigDecimal::of($closing))) {
             throw ValidationException::withMessages([
@@ -262,7 +262,7 @@ final class BankStatementImportService
                     throw ValidationException::withMessages(['statement_file' => ["CSV row {$physicalLine} requires a description."]]);
                 }
 
-                $signed = $credit->minus($debit)->toScale(self::SCALE, RoundingMode::HALF_UP);
+                $signed = $credit->minus($debit)->toScale(self::SCALE, RoundingMode::HalfUp);
                 $running = trim((string) ($record['balance'] ?? ''));
                 $runningBalance = $running === '' ? null : $this->csvDecimal($running, $physicalLine, 'balance', true)->__toString();
                 $lineNumber = count($rows) + 1;
@@ -327,7 +327,7 @@ final class BankStatementImportService
     private function csvDecimal(mixed $value, int $line, string $column, bool $allowNegative = false): BigDecimal
     {
         try {
-            $decimal = BigDecimal::of(trim((string) $value))->toScale(self::SCALE, RoundingMode::UNNECESSARY);
+            $decimal = BigDecimal::of(trim((string) $value))->toScale(self::SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages([
                 'statement_file' => ["CSV row {$line} column {$column} must be a number with no more than six decimals."],
@@ -346,7 +346,7 @@ final class BankStatementImportService
     private function decimal(mixed $value, string $field, bool $allowNegative): string
     {
         try {
-            $decimal = BigDecimal::of(trim((string) $value))->toScale(self::SCALE, RoundingMode::UNNECESSARY);
+            $decimal = BigDecimal::of(trim((string) $value))->toScale(self::SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages([$field => ['Enter a number with no more than six decimal places.']]);
         }

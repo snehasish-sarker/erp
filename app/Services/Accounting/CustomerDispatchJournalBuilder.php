@@ -62,7 +62,7 @@ final class CustomerDispatchJournalBuilder
         $amount = $totalCost
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
 

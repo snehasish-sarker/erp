@@ -164,7 +164,7 @@ final class ManagementBudgetController extends Controller
         foreach ($budget->lines as $line) {
             $total = $total->plus((string) $line->amount);
         }
-        $totalAmount = $total->toScale(6, RoundingMode::HALF_UP)->__toString();
+        $totalAmount = $total->toScale(6, RoundingMode::HalfUp)->__toString();
         return [
             ...$this->summary($budget, $actor),
             'notes' => $budget->notes, 'total_amount' => $totalAmount, 'approved_at' => $budget->approved_at?->toIso8601String(),

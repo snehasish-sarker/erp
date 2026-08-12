@@ -94,7 +94,7 @@ final class SupplierInvoiceJournalBuilder
             ->minus($discountAmount)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $otherCharges = $this->nonNegativeMoney(
@@ -129,7 +129,7 @@ final class SupplierInvoiceJournalBuilder
             ->plus($otherCharges)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $reconstructedTotal = $expectedGrniAmount
@@ -138,7 +138,7 @@ final class SupplierInvoiceJournalBuilder
             ->plus($roundingAdjustment)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if (!$reconstructedTotal->isEqualTo($totalAmount)) {
@@ -304,14 +304,14 @@ final class SupplierInvoiceJournalBuilder
                 (string) $purchaseOrder->exchange_rate,
             )->toScale(
                 self::RATE_SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
             $invoiceRate = BigDecimal::of(
                 (string) $supplierInvoice->exchange_rate,
             )->toScale(
                 self::RATE_SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (NumberFormatException|\ArithmeticException) {
             throw new LogicException(
@@ -422,19 +422,19 @@ final class SupplierInvoiceJournalBuilder
                         ->multipliedBy($unitCost)
                         ->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         ),
                 )
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $matchedQuantityTotal = $matchedQuantityTotal
                 ->plus($matchedQuantity)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $goodsReceiptIds[] = (int) $receiptLine
@@ -645,7 +645,7 @@ final class SupplierInvoiceJournalBuilder
         $isDebit = $signedDebitAmount->isPositive();
         $amount = $signedDebitAmount->abs()->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $lines[] = [
@@ -742,7 +742,7 @@ final class SupplierInvoiceJournalBuilder
                 (string) $value,
             )->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
         } catch (NumberFormatException) {
             throw new LogicException(

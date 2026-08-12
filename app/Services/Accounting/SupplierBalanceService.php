@@ -223,7 +223,7 @@ final class SupplierBalanceService
             (string) $value,
         )->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
     }
 }

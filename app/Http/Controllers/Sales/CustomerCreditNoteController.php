@@ -614,7 +614,7 @@ final class CustomerCreditNoteController extends Controller
                             'invoiced_quantity' => (string) $line->invoiced_quantity,
                             'credited_quantity' => (string) $line->credited_quantity,
                             'remaining_creditable_quantity' => $remainingQuantity
-                                ->toScale(self::SCALE, RoundingMode::HALF_UP)
+                                ->toScale(self::SCALE, RoundingMode::HalfUp)
                                 ->__toString(),
                             'unit_price' => (string) $line->unit_price,
                             'gross_amount' => (string) $line->gross_amount,
@@ -624,7 +624,7 @@ final class CustomerCreditNoteController extends Controller
                             'line_total' => (string) $line->line_total,
                             'credited_amount' => (string) $line->credited_amount,
                             'remaining_creditable_amount' => $remainingAmount
-                                ->toScale(self::SCALE, RoundingMode::HALF_UP)
+                                ->toScale(self::SCALE, RoundingMode::HalfUp)
                                 ->__toString(),
                         ];
                     },

@@ -113,18 +113,18 @@ final class CustomerCreditNoteInventoryService
 
         $newQuantity = $currentQuantity
             ->plus($quantity)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newValue = $currentValue
             ->plus($totalCost)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newAverage = $newQuantity->isZero()
             ? BigDecimal::zero()->toScale(self::SCALE)
             : $newValue->dividedBy(
                 $newQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $unitCost = $quantity->isZero()
@@ -132,7 +132,7 @@ final class CustomerCreditNoteInventoryService
             : $totalCost->dividedBy(
                 $quantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $balance->quantity_on_hand = $newQuantity->__toString();
@@ -269,11 +269,11 @@ final class CustomerCreditNoteInventoryService
 
         $newQuantity = $currentQuantity
             ->minus($quantity)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newValue = $currentValue
             ->minus($totalCost)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         if ($newQuantity->isZero()) {
             $newValue = BigDecimal::zero()->toScale(self::SCALE);
@@ -288,7 +288,7 @@ final class CustomerCreditNoteInventoryService
             $newAverage = $newValue->dividedBy(
                 $newQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
         }
 
@@ -384,8 +384,8 @@ final class CustomerCreditNoteInventoryService
         }
 
         return [
-            $quantity->toScale(self::SCALE, RoundingMode::HALF_UP),
-            $cost->toScale(self::SCALE, RoundingMode::HALF_UP),
+            $quantity->toScale(self::SCALE, RoundingMode::HalfUp),
+            $cost->toScale(self::SCALE, RoundingMode::HalfUp),
         ];
     }
 

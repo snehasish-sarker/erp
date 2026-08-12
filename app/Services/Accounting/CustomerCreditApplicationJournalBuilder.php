@@ -49,7 +49,7 @@ final class CustomerCreditApplicationJournalBuilder
             $lines[] = $this->line(account: $control, branchId: (int) $application->branch_id, customerId: (int) $application->customer_id, reference: $reference, description: "Apply customer credit {$applicationLine->credit_document_number}", debit: $amount, credit: BigDecimal::zero(), baseDebit: $creditBase, baseCredit: BigDecimal::zero(),);
             $lines[] = $this->line(account: $ar, branchId: (int) $application->branch_id, customerId: (int) $application->customer_id, reference: $reference, description: "Settle customer receivable {$applicationLine->receivable_document_number}", debit: BigDecimal::zero(), credit: $amount, baseDebit: BigDecimal::zero(), baseCredit: $receivableBase,);
         }
-        $exchange = $exchange->toScale(self::SCALE, RoundingMode::HALF_UP);
+        $exchange = $exchange->toScale(self::SCALE, RoundingMode::HalfUp);
         if ($exchange->isPositive()) {
             $lines[] = $this->line($gain, (int) $application->branch_id, null, (string) $application->application_number, 'Realized exchange gain on customer credit application', BigDecimal::zero(), BigDecimal::zero(), BigDecimal::zero(), $exchange);
         } elseif ($exchange->isNegative()) {
@@ -78,7 +78,7 @@ final class CustomerCreditApplicationJournalBuilder
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::SCALE, RoundingMode::HalfUp)->__toString();
     }
 
     private function requireTransaction(): void

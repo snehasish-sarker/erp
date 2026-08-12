@@ -264,7 +264,7 @@ final class CustomerReceiptJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $calculatedAllocatedAmount =
@@ -272,7 +272,7 @@ final class CustomerReceiptJournalBuilder
                     ->plus($amount)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $receivableBaseAmount =
@@ -282,7 +282,7 @@ final class CustomerReceiptJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $receiptBaseAmount =
@@ -292,7 +292,7 @@ final class CustomerReceiptJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $remainingReceiptAmount =
@@ -300,7 +300,7 @@ final class CustomerReceiptJournalBuilder
                     ->minus($amount)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $remainingReceiptBaseAmount =
@@ -310,7 +310,7 @@ final class CustomerReceiptJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $allocationSnapshots[] = [
@@ -364,7 +364,7 @@ final class CustomerReceiptJournalBuilder
                 ->minus($receivableBaseAmount)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $accounts =
@@ -1139,7 +1139,7 @@ final class CustomerReceiptJournalBuilder
             ->multipliedBy($exchangeRate)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 
@@ -1261,7 +1261,7 @@ final class CustomerReceiptJournalBuilder
                 (string) $value,
             )->toScale(
                 $scale,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
         } catch (ArithmeticException $exception) {
             throw new LogicException(

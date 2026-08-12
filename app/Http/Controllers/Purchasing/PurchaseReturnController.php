@@ -1581,7 +1581,7 @@ final class PurchaseReturnController extends Controller
             )
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 

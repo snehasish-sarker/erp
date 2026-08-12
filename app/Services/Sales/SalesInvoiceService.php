@@ -764,7 +764,7 @@ final class SalesInvoiceService
                     ->multipliedBy($unitCost)
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
                 $lineAllocations[] = [
@@ -798,7 +798,7 @@ final class SalesInvoiceService
                 ->multipliedBy(
                     BigDecimal::of((string) $orderLine->unit_price),
                 )
-                ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                ->toScale(self::SCALE, RoundingMode::HalfUp);
 
             $discount = $orderedQuantity->isZero()
                 ? BigDecimal::zero()
@@ -807,7 +807,7 @@ final class SalesInvoiceService
                     ->dividedBy(
                         $orderedQuantity,
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $taxable = $gross->minus($discount);
@@ -819,7 +819,7 @@ final class SalesInvoiceService
                 ->dividedBy(
                     BigDecimal::of('100'),
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $lineTotal = $taxable->plus($tax);
@@ -852,7 +852,7 @@ final class SalesInvoiceService
                         $lineCost->dividedBy(
                             $quantity,
                             self::SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         ),
                     ),
                 'total_cost' => $this->decimal($lineCost),
@@ -1396,7 +1396,7 @@ final class SalesInvoiceService
             $quantity = BigDecimal::of($value)
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
         } catch (\ArithmeticException) {
             throw ValidationException::withMessages([
@@ -1427,7 +1427,7 @@ final class SalesInvoiceService
     ): string {
         return $value->toScale(
             self::SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         )->__toString();
     }
 }

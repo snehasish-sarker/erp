@@ -471,7 +471,7 @@ final class ManagementReportingService
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::SCALE, RoundingMode::HalfUp)->__toString();
     }
 
     private function percentage(BigDecimal $part, BigDecimal $whole): string
@@ -479,7 +479,7 @@ final class ManagementReportingService
         if ($whole->isZero()) {
             return '0.00';
         }
-        return $part->multipliedBy('100')->dividedBy($whole, 2, RoundingMode::HALF_UP)->__toString();
+        return $part->multipliedBy('100')->dividedBy($whole, 2, RoundingMode::HalfUp)->__toString();
     }
 
     private function percentageChange(BigDecimal $current, BigDecimal $previous): string
@@ -487,6 +487,6 @@ final class ManagementReportingService
         if ($previous->isZero()) {
             return $current->isZero() ? '0.00' : '100.00';
         }
-        return $current->minus($previous)->multipliedBy('100')->dividedBy($previous->abs(), 2, RoundingMode::HALF_UP)->__toString();
+        return $current->minus($previous)->multipliedBy('100')->dividedBy($previous->abs(), 2, RoundingMode::HalfUp)->__toString();
     }
 }

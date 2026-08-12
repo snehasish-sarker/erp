@@ -1307,7 +1307,7 @@ final class AccountsPayablePostingService
             ->multipliedBy($exchangeRate)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 
@@ -1330,7 +1330,7 @@ final class AccountsPayablePostingService
             return BigDecimal::of((string) $value)
                 ->toScale(
                     $scale,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
         } catch (ArithmeticException $exception) {
             throw new LogicException(

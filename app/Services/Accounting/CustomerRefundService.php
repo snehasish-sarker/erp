@@ -199,7 +199,7 @@ final class CustomerRefundService
         $credits = CustomerOpenItem::query()->whereIn('id', $creditIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
         $used = [];
         $creditBaseTotal = BigDecimal::zero();
-        $cashBaseTotal = BigDecimal::of((string) $refund->total_amount)->multipliedBy((string) $refund->exchange_rate)->toScale(self::SCALE, RoundingMode::HALF_UP);
+        $cashBaseTotal = BigDecimal::of((string) $refund->total_amount)->multipliedBy((string) $refund->exchange_rate)->toScale(self::SCALE, RoundingMode::HalfUp);
         if ($cashBaseTotal->isGreaterThan(BigDecimal::of(self::MAXIMUM_AMOUNT))) {
             throw ValidationException::withMessages([
                 'exchange_rate' => ['The refund base-currency amount exceeds the supported maximum.'],
@@ -221,11 +221,11 @@ final class CustomerRefundService
             $used[(int) $credit->getKey()] = $alreadyUsed->plus($amount);
             $baseOutstanding = BigDecimal::of((string) $credit->base_outstanding_amount);
             $creditOutstanding = BigDecimal::of((string) $credit->outstanding_amount);
-            $creditBase = $amount->compareTo($remainingCredit) === 0 && $alreadyUsed->isZero() ? $baseOutstanding: $amount->multipliedBy((string) $credit->exchange_rate)->toScale(self::SCALE, RoundingMode::HALF_UP);
+            $creditBase = $amount->compareTo($remainingCredit) === 0 && $alreadyUsed->isZero() ? $baseOutstanding: $amount->multipliedBy((string) $credit->exchange_rate)->toScale(self::SCALE, RoundingMode::HalfUp);
             if ($creditBase->isGreaterThan($baseOutstanding)) {
                 $creditBase = $baseOutstanding;
             }
-            $cashBase = $amount->compareTo($remainingAmount) === 0 ? $remainingCashBase: $amount->multipliedBy((string) $refund->exchange_rate)->toScale(self::SCALE, RoundingMode::HALF_UP);
+            $cashBase = $amount->compareTo($remainingAmount) === 0 ? $remainingCashBase: $amount->multipliedBy((string) $refund->exchange_rate)->toScale(self::SCALE, RoundingMode::HalfUp);
             $line->credit_document_number = $credit->document_number;
             $line->credit_item_type = $credit->item_type;
             $line->credit_source_type = $credit->source_type;
@@ -384,7 +384,7 @@ final class CustomerRefundService
     private function positiveMoney(mixed $value, string $field): BigDecimal
     {
         try {
-            $v = BigDecimal::of((string) $value)->toScale(self::SCALE, RoundingMode::UNNECESSARY);
+            $v = BigDecimal::of((string) $value)->toScale(self::SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages([$field => ['The amount is invalid or has more than 6 decimal places.']]);
         }
@@ -397,7 +397,7 @@ final class CustomerRefundService
     private function positiveRate(mixed $value): string
     {
         try {
-            $v = BigDecimal::of((string) $value)->toScale(self::RATE_SCALE, RoundingMode::UNNECESSARY);
+            $v = BigDecimal::of((string) $value)->toScale(self::RATE_SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages(['exchange_rate' => ['The exchange rate is invalid or has more than 8 decimal places.']]);
         }
@@ -452,6 +452,6 @@ final class CustomerRefundService
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::SCALE, RoundingMode::HalfUp)->__toString();
     }
 }

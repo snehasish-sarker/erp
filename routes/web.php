@@ -35,6 +35,7 @@ use App\Http\Controllers\Inventory\StockLedgerController;
 use App\Http\Controllers\Inventory\InventoryTransferController;
 use App\Http\Controllers\Inventory\InventoryAdjustmentController;
 use App\Http\Controllers\Inventory\InventoryStockCountController;
+use App\Http\Controllers\Dashboard\DashboardController;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Route;
@@ -110,9 +111,9 @@ Route::middleware([
     'tenant.context',
     'tenant.active',
 ])->group(function (): void {
-    Route::inertia(
+    Route::get(
         '/',
-        'Dashboard/Index',
+        DashboardController::class,
     )
         ->middleware('permission:dashboard.view')
         ->name('dashboard');

@@ -1538,7 +1538,7 @@ final class SupplierDebitNoteController extends Controller
                 ->availableDebitNoteAmount()
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         return [
@@ -2047,7 +2047,7 @@ final class SupplierDebitNoteController extends Controller
                                                 ->return_quantity,
                                         ),
                                         self::SCALE,
-                                        RoundingMode::HALF_UP,
+                                        RoundingMode::HalfUp,
                                     )
                                     ->__toString(),
 

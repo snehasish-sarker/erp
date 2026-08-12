@@ -218,7 +218,7 @@ final class SalesInvoiceJournalBuilder
         return $value
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
     }

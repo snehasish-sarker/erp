@@ -112,7 +112,7 @@ final class InventoryTransferService
                         (string) $inputLine['quantity'],
                     )->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
                     $sourceBalance = InventoryBalance::query()
@@ -349,15 +349,15 @@ final class InventoryTransferService
         );
 
         $quantity = BigDecimal::of((string) $line->quantity)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $sourceQuantity = BigDecimal::of(
             (string) $sourceBalance->quantity_on_hand,
-        )->toScale(self::SCALE, RoundingMode::HALF_UP);
+        )->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $sourceReserved = BigDecimal::of(
             (string) $sourceBalance->quantity_reserved,
-        )->toScale(self::SCALE, RoundingMode::HALF_UP);
+        )->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $sourceAvailable = $sourceQuantity->minus($sourceReserved);
 
@@ -371,17 +371,17 @@ final class InventoryTransferService
 
         $sourceValue = BigDecimal::of(
             (string) $sourceBalance->inventory_value,
-        )->toScale(self::SCALE, RoundingMode::HALF_UP);
+        )->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $sourceAverageCost = BigDecimal::of(
             (string) $sourceBalance->average_unit_cost,
-        )->toScale(self::SCALE, RoundingMode::HALF_UP);
+        )->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $transferValue = $sourceQuantity->isEqualTo($quantity)
             ? $sourceValue
             : $sourceAverageCost
                 ->multipliedBy($quantity)
-                ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         if ($transferValue->isGreaterThan($sourceValue)) {
             $transferValue = $sourceValue;
@@ -389,11 +389,11 @@ final class InventoryTransferService
 
         $newSourceQuantity = $sourceQuantity
             ->minus($quantity)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newSourceValue = $sourceValue
             ->minus($transferValue)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         if (
             $newSourceQuantity->isLessThan($sourceReserved)
@@ -411,31 +411,31 @@ final class InventoryTransferService
             : $newSourceValue->dividedBy(
                 $newSourceQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $destinationQuantity = BigDecimal::of(
             (string) $destinationBalance->quantity_on_hand,
-        )->toScale(self::SCALE, RoundingMode::HALF_UP);
+        )->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $destinationValue = BigDecimal::of(
             (string) $destinationBalance->inventory_value,
-        )->toScale(self::SCALE, RoundingMode::HALF_UP);
+        )->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newDestinationQuantity = $destinationQuantity
             ->plus($quantity)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newDestinationValue = $destinationValue
             ->plus($transferValue)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newDestinationAverageCost = $newDestinationQuantity->isZero()
             ? BigDecimal::zero()->toScale(self::SCALE)
             : $newDestinationValue->dividedBy(
                 $newDestinationQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $sourceBalance->quantity_on_hand = $newSourceQuantity->__toString();

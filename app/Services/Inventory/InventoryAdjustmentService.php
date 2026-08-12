@@ -438,7 +438,7 @@ final class InventoryAdjustmentService
                 $newAverageCost = $valueAfter->dividedBy(
                     $quantityAfter,
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
             }
 
@@ -456,7 +456,7 @@ final class InventoryAdjustmentService
             $newAverageCost = $valueAfter->dividedBy(
                 $quantityAfter,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
             $movementType = 'adjustment_in';
@@ -588,7 +588,7 @@ final class InventoryAdjustmentService
     {
         return BigDecimal::of($value)->toScale(
             self::SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
     }
 
@@ -596,7 +596,7 @@ final class InventoryAdjustmentService
     {
         return $value->toScale(
             self::SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         )->__toString();
     }
 }

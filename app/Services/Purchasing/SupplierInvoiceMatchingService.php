@@ -143,7 +143,7 @@ final class SupplierInvoiceMatchingService
                 ->minus($previouslyInvoicedQuantity)
                 ->toScale(
                     self::QUANTITY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             if ($invoicedQuantity->isGreaterThan($availableQuantity)) {
@@ -212,14 +212,14 @@ final class SupplierInvoiceMatchingService
                     $receivedQuantity
                         ->toScale(
                             self::QUANTITY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
                 'previously_invoiced_quantity_snapshot' =>
                     $previouslyInvoicedQuantity
                         ->toScale(
                             self::QUANTITY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
                 'available_to_invoice_quantity_snapshot' =>
@@ -432,7 +432,7 @@ final class SupplierInvoiceMatchingService
                     ->plus($matchedQuantity)
                     ->toScale(
                         self::QUANTITY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -534,7 +534,7 @@ final class SupplierInvoiceMatchingService
             $line->matched_quantity = $lineMatchedQuantity
                 ->toScale(
                     self::QUANTITY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -542,7 +542,7 @@ final class SupplierInvoiceMatchingService
                 $purchaseOrderQuantityVariance
                     ->toScale(
                         self::QUANTITY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -568,7 +568,7 @@ final class SupplierInvoiceMatchingService
             $line->received_quantity_snapshot = $receivedForOrderLine
                 ->toScale(
                     self::QUANTITY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -576,7 +576,7 @@ final class SupplierInvoiceMatchingService
                 $previouslyInvoicedForOrderLine
                     ->toScale(
                         self::QUANTITY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -584,7 +584,7 @@ final class SupplierInvoiceMatchingService
                 $availableBeforeReservation
                     ->toScale(
                         self::QUANTITY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -615,7 +615,7 @@ final class SupplierInvoiceMatchingService
         $supplierInvoice->quantity_variance = $quantityVariance
             ->toScale(
                 self::QUANTITY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
 
@@ -703,7 +703,7 @@ final class SupplierInvoiceMatchingService
                 ->minus($matchedQuantity)
                 ->toScale(
                     self::QUANTITY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -849,7 +849,7 @@ final class SupplierInvoiceMatchingService
                 ->minus($purchaseOrderPrice)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             $matches[] = [
@@ -872,7 +872,7 @@ final class SupplierInvoiceMatchingService
                     $purchaseOrderPrice
                         ->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
                 'invoice_unit_price_snapshot' =>
@@ -884,7 +884,7 @@ final class SupplierInvoiceMatchingService
                         ->multipliedBy($matchedQuantity)
                         ->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
                 'matched_amount' =>
@@ -892,7 +892,7 @@ final class SupplierInvoiceMatchingService
                         ->multipliedBy($matchedQuantity)
                         ->toScale(
                             self::MONEY_SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString(),
             ];
@@ -946,7 +946,7 @@ final class SupplierInvoiceMatchingService
         try {
             $quantity->toScale(
                 $allowedScale,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (ArithmeticException) {
             throw ValidationException::withMessages([
@@ -1025,7 +1025,7 @@ final class SupplierInvoiceMatchingService
         try {
             $decimal = $decimal->toScale(
                 $scale,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (ArithmeticException) {
             throw ValidationException::withMessages([

@@ -177,6 +177,10 @@ const decimalValue = (
         : 0;
 };
 
+const normalizeNumericInput = (
+    value: string | number,
+): string => String(value).trim();
+
 const formatDecimal = (
     value: number,
     places = 6,
@@ -547,6 +551,21 @@ const submit = (): void => {
                     .trim()
                     .toUpperCase(),
 
+            exchange_rate:
+                normalizeNumericInput(
+                    data.exchange_rate,
+                ),
+
+            shipping_amount:
+                normalizeNumericInput(
+                    data.shipping_amount,
+                ),
+
+            other_charges:
+                normalizeNumericInput(
+                    data.other_charges,
+                ),
+
             supplier_reference:
                 data.supplier_reference.trim(),
 
@@ -572,18 +591,24 @@ const submit = (): void => {
                         line.description.trim(),
 
                     ordered_quantity:
-                        line.ordered_quantity
-                            .trim(),
+                        normalizeNumericInput(
+                            line.ordered_quantity,
+                        ),
 
                     unit_price:
-                        line.unit_price.trim(),
+                        normalizeNumericInput(
+                            line.unit_price,
+                        ),
 
                     discount_amount:
-                        line.discount_amount
-                            .trim(),
+                        normalizeNumericInput(
+                            line.discount_amount,
+                        ),
 
                     tax_rate:
-                        line.tax_rate.trim(),
+                        normalizeNumericInput(
+                            line.tax_rate,
+                        ),
                 }),
             ),
         }),

@@ -497,7 +497,7 @@ final class TreasuryAdjustmentService
     {
         return BigDecimal::of($amount)
             ->multipliedBy(BigDecimal::of($rate))
-            ->toScale(self::MONEY_SCALE, RoundingMode::HALF_UP)
+            ->toScale(self::MONEY_SCALE, RoundingMode::HalfUp)
             ->__toString();
     }
 
@@ -524,7 +524,7 @@ final class TreasuryAdjustmentService
     private function positiveDecimal(mixed $value, int $scale, string $field): BigDecimal
     {
         try {
-            $decimal = BigDecimal::of(trim((string) $value))->toScale($scale, RoundingMode::UNNECESSARY);
+            $decimal = BigDecimal::of(trim((string) $value))->toScale($scale, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages([$field => ["Enter a positive number with no more than {$scale} decimal places."]]);
         }

@@ -1037,7 +1037,7 @@ final class GoodsReceiptController extends Controller
             ->minus($received)
             ->toScale(
                 6,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $netAmount = BigDecimal::of(
@@ -1056,7 +1056,7 @@ final class GoodsReceiptController extends Controller
             : $netAmount->dividedBy(
                 $ordered,
                 6,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         return [

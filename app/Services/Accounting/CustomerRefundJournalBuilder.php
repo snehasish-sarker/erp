@@ -54,7 +54,7 @@ final class CustomerRefundJournalBuilder
         }
         $cashBase = BigDecimal::of((string) $refund->base_cash_amount);
         $lines[] = $this->line(account: $refundAccount, branchId: (int) $refund->branch_id, customerId: null, reference: (string) $refund->refund_number, description: "Customer Refund {$refund->refund_number}", debit: BigDecimal::zero(), credit: $total, baseDebit: BigDecimal::zero(), baseCredit: $cashBase,);
-        $exchange = $creditBaseTotal->minus($cashBase)->toScale(self::SCALE, RoundingMode::HALF_UP);
+        $exchange = $creditBaseTotal->minus($cashBase)->toScale(self::SCALE, RoundingMode::HalfUp);
         if ($exchange->isPositive()) {
             $lines[] = $this->line($gain, (int) $refund->branch_id, null, (string) $refund->refund_number, 'Realized exchange gain on Customer Refund', BigDecimal::zero(), BigDecimal::zero(), BigDecimal::zero(), $exchange);
         } elseif ($exchange->isNegative()) {
@@ -80,7 +80,7 @@ final class CustomerRefundJournalBuilder
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::SCALE, RoundingMode::HalfUp)->__toString();
     }
 
     private function requireTransaction(): void

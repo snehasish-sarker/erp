@@ -999,7 +999,7 @@ final class PurchaseReturnService
                                 ->return_reserved_quantity,
                         )->toScale(
                             self::SCALE,
-                            RoundingMode::UNNECESSARY,
+                            RoundingMode::Unnecessary,
                         );
 
                     if (
@@ -1052,7 +1052,7 @@ final class PurchaseReturnService
                                 )
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -1067,7 +1067,7 @@ final class PurchaseReturnService
                                 )
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -1082,7 +1082,7 @@ final class PurchaseReturnService
                                 )
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -1333,7 +1333,7 @@ final class PurchaseReturnService
                                 ->returned_quantity,
                         )->toScale(
                             self::SCALE,
-                            RoundingMode::UNNECESSARY,
+                            RoundingMode::Unnecessary,
                         );
 
                     if (
@@ -1371,7 +1371,7 @@ final class PurchaseReturnService
                                 )
                                 ->toScale(
                                     self::SCALE,
-                                    RoundingMode::HALF_UP,
+                                    RoundingMode::HalfUp,
                                 )
                                 ->__toString();
 
@@ -2083,7 +2083,7 @@ final class PurchaseReturnService
                         ->return_reserved_quantity,
                 )->toScale(
                     self::SCALE,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
 
             $line
@@ -2118,7 +2118,7 @@ final class PurchaseReturnService
                         )
                         ->toScale(
                             self::SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString();
 
@@ -2132,7 +2132,7 @@ final class PurchaseReturnService
                         )
                         ->toScale(
                             self::SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString();
 
@@ -2173,7 +2173,7 @@ final class PurchaseReturnService
                         ->return_reserved_quantity,
                 )->toScale(
                     self::SCALE,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
 
             if (
@@ -2195,7 +2195,7 @@ final class PurchaseReturnService
                         )
                         ->toScale(
                             self::SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         )
                         ->__toString();
 
@@ -2397,7 +2397,7 @@ final class PurchaseReturnService
                 ->return_quantity,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
     }
 
@@ -2628,7 +2628,7 @@ final class PurchaseReturnService
             $quantity =
                 $quantity->toScale(
                     self::SCALE,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
         } catch (ArithmeticException) {
             throw ValidationException::withMessages([
@@ -2678,7 +2678,7 @@ final class PurchaseReturnService
         try {
             $quantity->toScale(
                 $allowedScale,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (ArithmeticException) {
             throw ValidationException::withMessages([

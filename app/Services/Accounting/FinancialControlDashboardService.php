@@ -78,7 +78,7 @@ final class FinancialControlDashboardService
             : $currentAssets->dividedBy(
                 $currentLiabilities,
                 6,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )->__toString();
         $unposted = DB::table('journal_entries')
             ->where('tenant_id', $this->tenantContext->id())
@@ -110,7 +110,7 @@ final class FinancialControlDashboardService
                 'cash_and_bank' => $cashFlow['direct']['totals']['closing_cash'],
                 'working_capital' => $workingCapital->toScale(
                     6,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )->__toString(),
                 'current_ratio' => $currentRatio,
                 'reconciliation_difference' => $reconciliation['summary']['total_absolute_difference'],

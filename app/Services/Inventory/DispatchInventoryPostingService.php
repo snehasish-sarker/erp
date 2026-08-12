@@ -71,7 +71,7 @@ final class DispatchInventoryPostingService
                 ->dispatched_quantity,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentQuantity = BigDecimal::of(
@@ -79,7 +79,7 @@ final class DispatchInventoryPostingService
                 ->quantity_on_hand,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentReserved = BigDecimal::of(
@@ -87,7 +87,7 @@ final class DispatchInventoryPostingService
                 ->quantity_reserved,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentValue = BigDecimal::of(
@@ -95,7 +95,7 @@ final class DispatchInventoryPostingService
                 ->inventory_value,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         if (
@@ -152,7 +152,7 @@ final class DispatchInventoryPostingService
                 : $currentValue->dividedBy(
                     $quantity,
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
         } else {
             $unitCost = BigDecimal::of(
@@ -160,14 +160,14 @@ final class DispatchInventoryPostingService
                     ->average_unit_cost,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
             $totalCost = $quantity
                 ->multipliedBy($unitCost)
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
             if (
@@ -187,21 +187,21 @@ final class DispatchInventoryPostingService
             ->minus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newReserved = $currentReserved
             ->minus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newValue = $currentValue
             ->minus($totalCost)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if ($newQuantity->isZero()) {
@@ -228,7 +228,7 @@ final class DispatchInventoryPostingService
                 $newValue->dividedBy(
                     $newQuantity,
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
         }
 
@@ -256,7 +256,7 @@ final class DispatchInventoryPostingService
             ->plus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $reservation->consumed_quantity =
@@ -484,21 +484,21 @@ final class DispatchInventoryPostingService
             (string) $original->quantity_out,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $unitCost = BigDecimal::of(
             (string) $original->unit_cost,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $totalCost = BigDecimal::of(
             (string) $original->total_cost,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentQuantity = BigDecimal::of(
@@ -506,7 +506,7 @@ final class DispatchInventoryPostingService
                 ->quantity_on_hand,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentReserved = BigDecimal::of(
@@ -514,7 +514,7 @@ final class DispatchInventoryPostingService
                 ->quantity_reserved,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentValue = BigDecimal::of(
@@ -522,7 +522,7 @@ final class DispatchInventoryPostingService
                 ->inventory_value,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $postedBalanceQuantity =
@@ -531,7 +531,7 @@ final class DispatchInventoryPostingService
                     ->balance_quantity,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $postedBalanceValue =
@@ -540,7 +540,7 @@ final class DispatchInventoryPostingService
                     ->balance_value,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         if (
@@ -577,21 +577,21 @@ final class DispatchInventoryPostingService
             ->plus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newReserved = $currentReserved
             ->plus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newValue = $currentValue
             ->plus($totalCost)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newAverageCost = $newQuantity
@@ -601,7 +601,7 @@ final class DispatchInventoryPostingService
                 : $newValue->dividedBy(
                     $newQuantity,
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $balance->quantity_on_hand =
@@ -625,7 +625,7 @@ final class DispatchInventoryPostingService
             ->minus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $reservation->consumed_quantity =

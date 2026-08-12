@@ -1513,7 +1513,7 @@ final class PurchaseOrderService
         try {
             $decimal->toScale(
                 $allowedPlaces,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (\ArithmeticException) {
             throw ValidationException::withMessages([
@@ -1753,7 +1753,7 @@ final class PurchaseOrderService
         try {
             $decimal = $decimal->toScale(
                 $scale,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (\ArithmeticException) {
             throw ValidationException::withMessages([

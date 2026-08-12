@@ -130,7 +130,7 @@ final class TreasuryAccountService
 
         return BigDecimal::of($debit)
             ->minus(BigDecimal::of($credit))
-            ->toScale(self::SCALE, RoundingMode::HALF_UP)
+            ->toScale(self::SCALE, RoundingMode::HalfUp)
             ->__toString();
     }
 

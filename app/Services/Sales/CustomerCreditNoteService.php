@@ -930,7 +930,7 @@ final class CustomerCreditNoteService
             $remainingSubtotal = $this->remainingComponent(
                 BigDecimal::of((string) $sourceLine->gross_amount)
                     ->minus(BigDecimal::of((string) $sourceLine->discount_amount))
-                    ->toScale(self::SCALE, RoundingMode::HALF_UP)
+                    ->toScale(self::SCALE, RoundingMode::HalfUp)
                     ->__toString(),
                 (string) ($components?->subtotal ?? '0'),
             );
@@ -1017,7 +1017,7 @@ final class CustomerCreditNoteService
 
                     $subtotal = $gross
                         ->minus($discount)
-                        ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                        ->toScale(self::SCALE, RoundingMode::HalfUp);
 
                     if ($subtotal->isGreaterThan($remainingSubtotal)) {
                         $subtotal = $remainingSubtotal;
@@ -1032,13 +1032,13 @@ final class CustomerCreditNoteService
 
                     $lineTotal = $subtotal
                         ->plus($tax)
-                        ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                        ->toScale(self::SCALE, RoundingMode::HalfUp);
 
                     if ($lineTotal->isGreaterThan($remainingTotal)) {
                         $lineTotal = $remainingTotal;
                         $tax = $lineTotal
                             ->minus($subtotal)
-                            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                            ->toScale(self::SCALE, RoundingMode::HalfUp);
                     }
                 }
 
@@ -1079,7 +1079,7 @@ final class CustomerCreditNoteService
 
                     $allocationCost = $take
                         ->multipliedBy($unitCost)
-                        ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                        ->toScale(self::SCALE, RoundingMode::HalfUp);
 
                     $lineAllocations[] = [
                         'sales_invoice_dispatch_allocation_id' =>
@@ -1112,7 +1112,7 @@ final class CustomerCreditNoteService
                     : $cost->dividedBy(
                         $creditQuantity,
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
                 $builtLines[] = [
@@ -1170,7 +1170,7 @@ final class CustomerCreditNoteService
                         ->dividedBy(
                             $remainingTotal,
                             self::SCALE,
-                            RoundingMode::HALF_UP,
+                            RoundingMode::HalfUp,
                         );
 
                 if ($tax->isGreaterThan($remainingTax)) {
@@ -1179,13 +1179,13 @@ final class CustomerCreditNoteService
 
                 $subtotal = $creditAmount
                     ->minus($tax)
-                    ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                    ->toScale(self::SCALE, RoundingMode::HalfUp);
 
                 if ($subtotal->isGreaterThan($remainingSubtotal)) {
                     $subtotal = $remainingSubtotal;
                     $tax = $creditAmount
                         ->minus($subtotal)
-                        ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                        ->toScale(self::SCALE, RoundingMode::HalfUp);
                 }
             }
 
@@ -1698,7 +1698,7 @@ final class CustomerCreditNoteService
     ): BigDecimal {
         $remaining = BigDecimal::of($source)
             ->minus(BigDecimal::of($used))
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         if ($remaining->isLessThan(BigDecimal::zero())) {
             throw new LogicException(
@@ -1724,7 +1724,7 @@ final class CustomerCreditNoteService
             ->dividedBy(
                 $sourceQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         return $value->isGreaterThan($remainingMaximum)
@@ -1851,7 +1851,7 @@ final class CustomerCreditNoteService
 
         try {
             $decimal = BigDecimal::of($value)
-                ->toScale(self::SCALE, RoundingMode::UNNECESSARY);
+                ->toScale(self::SCALE, RoundingMode::Unnecessary);
         } catch (\ArithmeticException) {
             throw ValidationException::withMessages([
                 $field => [
@@ -1877,7 +1877,7 @@ final class CustomerCreditNoteService
     private function decimal(BigDecimal $value): string
     {
         return $value
-            ->toScale(self::SCALE, RoundingMode::HALF_UP)
+            ->toScale(self::SCALE, RoundingMode::HalfUp)
             ->__toString();
     }
 

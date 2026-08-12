@@ -9,6 +9,7 @@ import {
 } from 'vue';
 import ThemeProvider from '@/Components/Layout/ThemeProvider.vue';
 import ThemeToggler from '@/Components/Common/ThemeToggler.vue';
+import ToastNotification from '@/Components/Common/ToastNotification.vue';
 
 const page = usePage();
 
@@ -148,5 +149,7 @@ const logout = (): void => {
                 <slot />
             </main>
         </div>
+
+        <ToastNotification />
     </ThemeProvider>
 </template>

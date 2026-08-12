@@ -449,13 +449,13 @@ final class SupplierDebitNoteJournalBuilder
                 !$lineGross->minus($lineDiscount)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->isEqualTo($lineSubtotal)
                 || !$lineSubtotal->plus($lineTax)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->isEqualTo($lineTotal)
             ) {
@@ -494,42 +494,42 @@ final class SupplierDebitNoteJournalBuilder
 
         $gross = $gross->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $discount = $discount->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $subtotal = $subtotal->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $tax = $tax->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $total = $total->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $sourceSupplierValue = $sourceSupplierValue->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $sourceInventoryValue = $sourceInventoryValue->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $sourceCostVariance = $sourceCostVariance->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         $this->assertEqual(
@@ -695,7 +695,7 @@ final class SupplierDebitNoteJournalBuilder
     ): void {
         $amount = $amount->toScale(
             self::MONEY_SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
 
         if ($amount->isZero()) {
@@ -782,7 +782,7 @@ final class SupplierDebitNoteJournalBuilder
                 (string) $value,
             )->toScale(
                 self::EXCHANGE_RATE_SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (NumberFormatException|ArithmeticException) {
             throw new LogicException(
@@ -838,7 +838,7 @@ final class SupplierDebitNoteJournalBuilder
                 (string) $value,
             )->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
         } catch (NumberFormatException|ArithmeticException) {
             throw new LogicException(

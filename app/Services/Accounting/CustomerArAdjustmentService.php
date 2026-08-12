@@ -38,7 +38,7 @@ final class CustomerArAdjustmentService
         return DB::transaction(function() use($normalized, $actor): CustomerArAdjustment
         {
             [$branch, $customer, $account] = $this->context($normalized, $actor, true);
-            $baseAmount = BigDecimal::of($normalized['amount'])->multipliedBy($normalized['exchange_rate'])->toScale(self::MONEY_SCALE, RoundingMode::HALF_UP);
+            $baseAmount = BigDecimal::of($normalized['amount'])->multipliedBy($normalized['exchange_rate'])->toScale(self::MONEY_SCALE, RoundingMode::HalfUp);
             $this->ensureBaseAmountWithinRange($baseAmount);
             return $this->load(CustomerArAdjustment::query()->create(['branch_id' => $branch->getKey(), 'customer_id' => $customer->getKey(), 'offset_account_id' => $account->getKey(), 'adjustment_date' => $normalized['adjustment_date'], 'posting_date' => $normalized['posting_date'], 'currency_code' => $normalized['currency_code'], 'exchange_rate' => $normalized['exchange_rate'], 'direction' => $normalized['direction'], 'customer_name' => $customer->name, 'customer_code' => $customer->code, 'offset_account_code' => $account->code, 'offset_account_name' => $account->name, 'status' => 'draft', 'amount' => $normalized['amount'], 'base_amount' => $this->decimal($baseAmount), 'reason' => $normalized['reason'], 'notes' => $normalized['notes'], 'revision' => 1, 'created_by_user_id' => $actor->getKey(),]));
         }
@@ -53,7 +53,7 @@ final class CustomerArAdjustmentService
             $locked = CustomerArAdjustment::query()->whereKey($adjustment->getKey())->lockForUpdate()->firstOrFail();
             $this->requireStatus($locked, 'draft', 'Only a draft AR Adjustment can be edited.');
             [$branch, $customer, $account] = $this->context($normalized, $actor, true);
-            $baseAmount = BigDecimal::of($normalized['amount'])->multipliedBy($normalized['exchange_rate'])->toScale(self::MONEY_SCALE, RoundingMode::HALF_UP);
+            $baseAmount = BigDecimal::of($normalized['amount'])->multipliedBy($normalized['exchange_rate'])->toScale(self::MONEY_SCALE, RoundingMode::HalfUp);
             $this->ensureBaseAmountWithinRange($baseAmount);
             $locked->fill(['branch_id' => $branch->getKey(), 'customer_id' => $customer->getKey(), 'offset_account_id' => $account->getKey(), 'adjustment_date' => $normalized['adjustment_date'], 'posting_date' => $normalized['posting_date'], 'currency_code' => $normalized['currency_code'], 'exchange_rate' => $normalized['exchange_rate'], 'direction' => $normalized['direction'], 'customer_name' => $customer->name, 'customer_code' => $customer->code, 'offset_account_code' => $account->code, 'offset_account_name' => $account->name, 'amount' => $normalized['amount'], 'base_amount' => $this->decimal($baseAmount), 'reason' => $normalized['reason'], 'notes' => $normalized['notes'], 'revision' => (int) $locked->revision + 1,]);
             $locked->save();
@@ -251,7 +251,7 @@ final class CustomerArAdjustmentService
     private function positiveMoney(mixed $value): string
     {
         try {
-            $v = BigDecimal::of((string) $value)->toScale(self::MONEY_SCALE, RoundingMode::UNNECESSARY);
+            $v = BigDecimal::of((string) $value)->toScale(self::MONEY_SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages(['amount' => ['The amount is invalid or has more than 6 decimal places.']]);
         }
@@ -264,7 +264,7 @@ final class CustomerArAdjustmentService
     private function positiveRate(mixed $value): string
     {
         try {
-            $v = BigDecimal::of((string) $value)->toScale(self::RATE_SCALE, RoundingMode::UNNECESSARY);
+            $v = BigDecimal::of((string) $value)->toScale(self::RATE_SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages(['exchange_rate' => ['The exchange rate is invalid or has more than 8 decimal places.']]);
         }
@@ -328,6 +328,6 @@ final class CustomerArAdjustmentService
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::MONEY_SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::MONEY_SCALE, RoundingMode::HalfUp)->__toString();
     }
 }

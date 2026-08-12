@@ -673,7 +673,7 @@ final class BankReconciliationService
         return BigDecimal::of((string) $line->signed_amount)
             ->abs()
             ->minus(BigDecimal::of((string) $line->matched_amount))
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
     }
 
     private function journalAvailable(int $journalLineId, BigDecimal $absoluteAmount): BigDecimal
@@ -683,7 +683,7 @@ final class BankReconciliationService
             ->where('status', 'active')
             ->sum('matched_amount'));
 
-        return $absoluteAmount->minus($matched)->toScale(self::SCALE, RoundingMode::HALF_UP);
+        return $absoluteAmount->minus($matched)->toScale(self::SCALE, RoundingMode::HalfUp);
     }
 
     private function journalHistoricalUnmatched(int $journalLineId, BigDecimal $absoluteAmount, string $throughDate): BigDecimal
@@ -697,7 +697,7 @@ final class BankReconciliationService
             ->sum('bank_reconciliation_matches.matched_amount'));
         $remaining = $absoluteAmount->minus($matched);
 
-        return $remaining->isNegative() ? BigDecimal::zero()->toScale(self::SCALE) : $remaining->toScale(self::SCALE, RoundingMode::HALF_UP);
+        return $remaining->isNegative() ? BigDecimal::zero()->toScale(self::SCALE) : $remaining->toScale(self::SCALE, RoundingMode::HalfUp);
     }
 
     private function referencesOverlap(string $left, string $right): bool
@@ -789,7 +789,7 @@ final class BankReconciliationService
     private function positiveDecimal(string $value, string $field): BigDecimal
     {
         try {
-            $decimal = BigDecimal::of(trim($value))->toScale(self::SCALE, RoundingMode::UNNECESSARY);
+            $decimal = BigDecimal::of(trim($value))->toScale(self::SCALE, RoundingMode::Unnecessary);
         } catch (\Throwable) {
             throw ValidationException::withMessages([$field => ['Enter a positive number with no more than six decimal places.']]);
         }
@@ -829,6 +829,6 @@ final class BankReconciliationService
 
     private function decimal(BigDecimal $value): string
     {
-        return $value->toScale(self::SCALE, RoundingMode::HALF_UP)->__toString();
+        return $value->toScale(self::SCALE, RoundingMode::HalfUp)->__toString();
     }
 }

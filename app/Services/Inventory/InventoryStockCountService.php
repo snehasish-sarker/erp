@@ -111,7 +111,7 @@ final class InventoryStockCountService
 
                     $varianceQuantity = $countedQuantity
                         ->minus($systemQuantity)
-                        ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                        ->toScale(self::SCALE, RoundingMode::HalfUp);
 
                     $unitCost = $this->resolveUnitCost(
                         balance: $balance,
@@ -120,7 +120,7 @@ final class InventoryStockCountService
 
                     $varianceValue = $varianceQuantity
                         ->multipliedBy($unitCost)
-                        ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                        ->toScale(self::SCALE, RoundingMode::HalfUp);
 
                     if (!$varianceQuantity->isZero()) {
                         ++$varianceLineCount;
@@ -459,7 +459,7 @@ final class InventoryStockCountService
 
         $variance = $countedQuantity
             ->minus($currentQuantity)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $unitCost = $this->resolveUnitCost(
             balance: $balance,
@@ -468,7 +468,7 @@ final class InventoryStockCountService
 
         $varianceValue = $variance
             ->multipliedBy($unitCost)
-            ->toScale(self::SCALE, RoundingMode::HALF_UP);
+            ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $line->variance_quantity = $this->scaled($variance);
         $line->unit_cost = $this->scaled($unitCost);
@@ -502,7 +502,7 @@ final class InventoryStockCountService
             ? BigDecimal::zero()->toScale(self::SCALE)
             : $countedQuantity
                 ->multipliedBy($unitCost)
-                ->toScale(self::SCALE, RoundingMode::HALF_UP);
+                ->toScale(self::SCALE, RoundingMode::HalfUp);
 
         $newAverageCost = $countedQuantity->isZero()
             ? BigDecimal::zero()->toScale(self::SCALE)
@@ -662,7 +662,7 @@ final class InventoryStockCountService
     {
         return BigDecimal::of($value)->toScale(
             self::SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         );
     }
 
@@ -670,7 +670,7 @@ final class InventoryStockCountService
     {
         return $value->toScale(
             self::SCALE,
-            RoundingMode::HALF_UP,
+            RoundingMode::HalfUp,
         )->__toString();
     }
 }

@@ -95,7 +95,7 @@ final class InventoryBalance extends Model
             )
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
     }

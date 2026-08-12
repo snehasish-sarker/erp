@@ -1154,7 +1154,7 @@ final class CustomerDispatchController extends Controller
                                     $remaining
                                         ->toScale(
                                             self::SCALE,
-                                            RoundingMode::HALF_UP,
+                                            RoundingMode::HalfUp,
                                         )
                                         ->__toString(),
 

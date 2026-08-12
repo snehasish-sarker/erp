@@ -800,7 +800,7 @@ final class SupplierPaymentAccountsPayableService
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
         }
 
@@ -1518,7 +1518,7 @@ final class SupplierPaymentAccountsPayableService
             ->multipliedBy($exchangeRate)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 
@@ -1542,7 +1542,7 @@ final class SupplierPaymentAccountsPayableService
                 (string) $value,
             )->toScale(
                 $scale,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
         } catch (ArithmeticException $exception) {
             throw new LogicException(

@@ -79,7 +79,7 @@ export interface CustomerFormData {
     shipping_postal_code: string;
     shipping_country_code: string;
     payment_terms_days: number;
-    credit_limit: string;
+    credit_limit: string | number;
     notes: string;
     status: CustomerStatus;
 }

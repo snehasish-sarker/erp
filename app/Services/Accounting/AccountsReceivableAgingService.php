@@ -1044,7 +1044,7 @@ final class AccountsReceivableAgingService
                 ->dividedBy(
                     $receivable,
                     2,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         return [
@@ -1559,7 +1559,7 @@ final class AccountsReceivableAgingService
         return BigDecimal::of((string) ($value ?? '0'))
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 
@@ -1568,7 +1568,7 @@ final class AccountsReceivableAgingService
         return $value
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             )
             ->__toString();
     }
@@ -1581,7 +1581,7 @@ final class AccountsReceivableAgingService
     private function rateString(mixed $value): string
     {
         return BigDecimal::of((string) ($value ?? '0'))
-            ->toScale(8, RoundingMode::HALF_UP)
+            ->toScale(8, RoundingMode::HalfUp)
             ->__toString();
     }
 }

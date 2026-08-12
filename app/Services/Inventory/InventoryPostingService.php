@@ -137,14 +137,14 @@ final class InventoryPostingService
             ->plus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newValue = $currentValue
             ->plus($incomingValue)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newAverageCost = $newQuantity->isZero()
@@ -154,7 +154,7 @@ final class InventoryPostingService
             : $newValue->dividedBy(
                 $newQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $balance->quantity_on_hand =
@@ -409,49 +409,49 @@ final class InventoryPostingService
             (string) $originalEntry->quantity_in,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $originalUnitCost = BigDecimal::of(
             (string) $originalEntry->unit_cost,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $originalValue = BigDecimal::of(
             (string) $originalEntry->total_cost,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentQuantity = BigDecimal::of(
             (string) $balance->quantity_on_hand,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentValue = BigDecimal::of(
             (string) $balance->inventory_value,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $postedBalanceQuantity = BigDecimal::of(
             (string) $originalEntry->balance_quantity,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $postedBalanceValue = BigDecimal::of(
             (string) $originalEntry->balance_value,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         /*
@@ -502,14 +502,14 @@ final class InventoryPostingService
             ->minus($quantity)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $newValue = $currentValue
             ->minus($originalValue)
             ->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if (
@@ -545,7 +545,7 @@ final class InventoryPostingService
             : $newValue->dividedBy(
                 $newQuantity,
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         $balance->quantity_on_hand =
@@ -670,21 +670,21 @@ final class InventoryPostingService
             (string) $line->accepted_quantity,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $postedQuantity = BigDecimal::of(
             (string) $originalEntry->quantity_in,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $postedQuantityOut = BigDecimal::of(
             (string) $originalEntry->quantity_out,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         if (
@@ -865,7 +865,7 @@ final class InventoryPostingService
                 ->return_quantity,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $currentQuantity =
@@ -874,7 +874,7 @@ final class InventoryPostingService
                     ->quantity_on_hand,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $currentValue =
@@ -883,7 +883,7 @@ final class InventoryPostingService
                     ->inventory_value,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         if (
@@ -925,7 +925,7 @@ final class InventoryPostingService
                     ->dividedBy(
                         $quantity,
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
         } else {
             $outgoingUnitCost =
@@ -934,7 +934,7 @@ final class InventoryPostingService
                         ->average_unit_cost,
                 )->toScale(
                     self::SCALE,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
 
             $outgoingValue =
@@ -944,7 +944,7 @@ final class InventoryPostingService
                     )
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
         }
 
@@ -968,7 +968,7 @@ final class InventoryPostingService
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $newValue =
@@ -978,7 +978,7 @@ final class InventoryPostingService
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         if ($newQuantity->isZero()) {
@@ -1014,7 +1014,7 @@ final class InventoryPostingService
                     ->dividedBy(
                         $newQuantity,
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
         $balance->quantity_on_hand =
@@ -1299,7 +1299,7 @@ final class InventoryPostingService
                 ->quantity_out,
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
 
         $originalUnitCost =
@@ -1308,7 +1308,7 @@ final class InventoryPostingService
                     ->unit_cost,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $originalValue =
@@ -1317,7 +1317,7 @@ final class InventoryPostingService
                     ->total_cost,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $currentQuantity =
@@ -1326,7 +1326,7 @@ final class InventoryPostingService
                     ->quantity_on_hand,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $currentValue =
@@ -1335,7 +1335,7 @@ final class InventoryPostingService
                     ->inventory_value,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $postedBalanceQuantity =
@@ -1344,7 +1344,7 @@ final class InventoryPostingService
                     ->balance_quantity,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $postedBalanceValue =
@@ -1353,7 +1353,7 @@ final class InventoryPostingService
                     ->balance_value,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         if (
@@ -1380,7 +1380,7 @@ final class InventoryPostingService
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $newValue =
@@ -1390,7 +1390,7 @@ final class InventoryPostingService
                 )
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $newAverageCost =
@@ -1403,7 +1403,7 @@ final class InventoryPostingService
                     ->dividedBy(
                         $newQuantity,
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
         $balance->quantity_on_hand =
@@ -1502,7 +1502,7 @@ final class InventoryPostingService
                     ->return_quantity,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $postedQuantityIn =
@@ -1511,7 +1511,7 @@ final class InventoryPostingService
                     ->quantity_in,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         $postedQuantityOut =
@@ -1520,7 +1520,7 @@ final class InventoryPostingService
                     ->quantity_out,
             )->toScale(
                 self::SCALE,
-                RoundingMode::UNNECESSARY,
+                RoundingMode::Unnecessary,
             );
 
         if (

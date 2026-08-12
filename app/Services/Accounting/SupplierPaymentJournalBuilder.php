@@ -264,7 +264,7 @@ final class SupplierPaymentJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $calculatedAllocatedAmount =
@@ -272,7 +272,7 @@ final class SupplierPaymentJournalBuilder
                     ->plus($amount)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $payableBaseAmount =
@@ -282,7 +282,7 @@ final class SupplierPaymentJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $creditBaseAmount =
@@ -292,7 +292,7 @@ final class SupplierPaymentJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $remainingPaymentAmount =
@@ -300,7 +300,7 @@ final class SupplierPaymentJournalBuilder
                     ->minus($amount)
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $remainingPaymentBaseAmount =
@@ -310,7 +310,7 @@ final class SupplierPaymentJournalBuilder
                     )
                     ->toScale(
                         self::MONEY_SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     );
 
             $allocationSnapshots[] = [
@@ -364,7 +364,7 @@ final class SupplierPaymentJournalBuilder
                 ->minus($creditBaseAmount)
                 ->toScale(
                     self::MONEY_SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         $accounts =
@@ -1139,7 +1139,7 @@ final class SupplierPaymentJournalBuilder
             ->multipliedBy($exchangeRate)
             ->toScale(
                 self::MONEY_SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
     }
 
@@ -1261,7 +1261,7 @@ final class SupplierPaymentJournalBuilder
                 (string) $value,
             )->toScale(
                 $scale,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
         } catch (ArithmeticException $exception) {
             throw new LogicException(

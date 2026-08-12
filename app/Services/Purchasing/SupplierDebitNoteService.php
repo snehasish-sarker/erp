@@ -1758,7 +1758,7 @@ final class SupplierDebitNoteService
                         ->return_quantity,
                 )->toScale(
                     self::SCALE,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
 
             if (
@@ -2252,7 +2252,7 @@ final class SupplierDebitNoteService
                 ->availableDebitNoteAmount()
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 );
 
         if (
@@ -2276,7 +2276,7 @@ final class SupplierDebitNoteService
                     ->plus($amount)
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -2345,7 +2345,7 @@ final class SupplierDebitNoteService
                     ->minus($amount)
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -2506,7 +2506,7 @@ final class SupplierDebitNoteService
                     ->minus($amount)
                     ->toScale(
                         self::SCALE,
-                        RoundingMode::HALF_UP,
+                        RoundingMode::HalfUp,
                     )
                     ->__toString();
 
@@ -2518,7 +2518,7 @@ final class SupplierDebitNoteService
                 ->plus($amount)
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -2630,7 +2630,7 @@ final class SupplierDebitNoteService
                 ->minus($amount)
                 ->toScale(
                     self::SCALE,
-                    RoundingMode::HALF_UP,
+                    RoundingMode::HalfUp,
                 )
                 ->__toString();
 
@@ -2710,7 +2710,7 @@ final class SupplierDebitNoteService
         $totalAmount =
             $totalAmount->toScale(
                 self::SCALE,
-                RoundingMode::HALF_UP,
+                RoundingMode::HalfUp,
             );
 
         if ($supplierInvoice === null) {
@@ -3056,7 +3056,7 @@ final class SupplierDebitNoteService
             (string) ($value ?? '0'),
         )->toScale(
             self::SCALE,
-            RoundingMode::UNNECESSARY,
+            RoundingMode::Unnecessary,
         );
     }
 
@@ -3137,7 +3137,7 @@ final class SupplierDebitNoteService
                     trim((string) $value),
                 )->toScale(
                     $scale,
-                    RoundingMode::UNNECESSARY,
+                    RoundingMode::Unnecessary,
                 );
         } catch (ArithmeticException) {
             throw ValidationException::withMessages([

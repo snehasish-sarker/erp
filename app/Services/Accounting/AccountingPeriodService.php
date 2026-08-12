@@ -12,7 +12,7 @@ use App\Services\Auditing\AuditLogService;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -129,9 +129,9 @@ final class AccountingPeriodService
 
                 $fiscalYear->load([
                     'periods' => static function (
-                        Builder $query,
+                        HasMany $relation,
                     ): void {
-                        $query->orderBy('period_number');
+                        $relation->orderBy('period_number');
                     },
                 ]);
 
