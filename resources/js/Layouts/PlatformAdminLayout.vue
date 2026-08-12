@@ -20,6 +20,14 @@ const planSectionActive = computed(
     (): boolean => page.url.startsWith('/super-admin/plans'),
 );
 
+const subscriptionSectionActive = computed(
+    (): boolean => page.url.startsWith('/super-admin/subscriptions'),
+);
+
+const usageSectionActive = computed(
+    (): boolean => page.url.startsWith('/super-admin/usage'),
+);
+
 const billingSectionActive = computed(
     (): boolean => page.url.startsWith('/super-admin/billing'),
 );
@@ -78,6 +86,26 @@ const logout = (): void => {
                                     : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/70 dark:hover:text-white'"
                             >
                                 Tenants
+                            </Link>
+
+                            <Link
+                                :href="route('platform.subscriptions.index')"
+                                class="rounded-lg px-3 py-2 text-sm font-medium transition"
+                                :class="subscriptionSectionActive
+                                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/70 dark:hover:text-white'"
+                            >
+                                Subscriptions
+                            </Link>
+
+                            <Link
+                                :href="route('platform.usage.index')"
+                                class="rounded-lg px-3 py-2 text-sm font-medium transition"
+                                :class="usageSectionActive
+                                    ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/70 dark:hover:text-white'"
+                            >
+                                Usage
                             </Link>
 
                             <Link

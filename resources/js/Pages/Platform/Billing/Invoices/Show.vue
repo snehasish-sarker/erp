@@ -181,7 +181,7 @@ const recordPayment = (): void => {
         >
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Record manual payment</h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                This is for bank transfer/cash/offline settlement. Payment gateways will use the same provider-neutral payment records later.
+                Use this only to record bank transfer, cash, or other offline settlement. Recording a payment does not activate, renew, extend, suspend, or cancel the tenant package; subscription access remains controlled manually by Super Admin.
             </p>
 
             <form class="mt-5 grid gap-4 md:grid-cols-3" @submit.prevent="recordPayment">

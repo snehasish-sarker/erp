@@ -16,7 +16,6 @@ use Illuminate\Support\Facades\DB;
 final class SaasPaymentService
 {
     public function __construct(
-        private readonly SaasBillingService $billingService,
         private readonly AuditLogService $auditLogService,
     ) {
     }
@@ -125,14 +124,6 @@ final class SaasPaymentService
                     'status' => $newBalance === 0 ? 'paid' : 'open',
                     'paid_at' => $newBalance === 0 ? now() : null,
                 ])->save();
-
-                if ($newBalance === 0) {
-                    $this->billingService->activateSubscriptionPeriod(
-                        tenant: $tenant,
-                        subscription: $subscription,
-                        invoice: $lockedInvoice,
-                    );
-                }
 
                 $this->auditLogService->recordCustomEvent(
                     subject: $tenant,

@@ -8,6 +8,7 @@ import {
 import PlatformAdminLayout from '@/Layouts/PlatformAdminLayout.vue';
 import type {
     PlatformManualSubscriptionFormData,
+    PlatformSubscriptionQuickAction,
     PlatformTenantShowProps,
     PlatformTenantStatus,
 } from '@/Types/platform-admin';
@@ -76,6 +77,10 @@ const packageForm = useForm<PlatformManualSubscriptionFormData>({
     ),
     ends_at: toDateTimeLocal(props.subscription?.ends_at ?? null),
 });
+const quickActionForm = useForm<{ action: PlatformSubscriptionQuickAction }>({
+    action: 'renew_monthly',
+});
+
 
 const statusClass = (
     status: PlatformTenantStatus,
@@ -175,6 +180,34 @@ const suspend = (): void => {
     );
 };
 
+const applyQuickAction = (
+    action: PlatformSubscriptionQuickAction,
+    label: string,
+): void => {
+    if (props.subscription === null) {
+        return;
+    }
+
+    if (
+        !window.confirm(
+            `${label} for ${props.tenant.name}? This takes effect immediately and does not depend on an invoice or payment.`,
+        )
+    ) {
+        return;
+    }
+
+    quickActionForm.action = action;
+    quickActionForm.patch(
+        route(
+            'platform.tenants.subscription.quick-action',
+            props.tenant.id,
+        ),
+        {
+            preserveScroll: true,
+        },
+    );
+};
+
 const savePackageAllocation = (): void => {
     if (packageForm.saas_plan_id === null) {
         return;
@@ -234,6 +267,13 @@ const savePackageAllocation = (): void => {
             </div>
 
             <div class="flex flex-wrap gap-2">
+                <Link
+                    :href="route('platform.subscriptions.history', { tenant_id: tenant.id })"
+                    class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+                >
+                    Subscription history
+                </Link>
+
                 <button
                     v-if="tenant.can_activate"
                     type="button"
@@ -324,6 +364,93 @@ const savePackageAllocation = (): void => {
                     </div>
                 </div>
             </div>
+
+            <section
+                v-if="subscription && tenant.status !== 'archived'"
+                class="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-900/60"
+            >
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+                    Quick renewal & extension
+                </h3>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Manual Super Admin shortcuts only. Invoice/payment records do not activate or renew access.
+                </p>
+
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <template v-if="subscription.can_extend_trial">
+                        <button
+                            type="button"
+                            :disabled="quickActionForm.processing"
+                            class="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-500/10 dark:text-blue-300"
+                            @click="applyQuickAction('extend_trial_7', 'Extend trial by 7 days')"
+                        >
+                            Trial +7 Days
+                        </button>
+                        <button
+                            type="button"
+                            :disabled="quickActionForm.processing"
+                            class="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-500/10 dark:text-blue-300"
+                            @click="applyQuickAction('extend_trial_14', 'Extend trial by 14 days')"
+                        >
+                            Trial +14 Days
+                        </button>
+                        <button
+                            type="button"
+                            :disabled="quickActionForm.processing"
+                            class="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700 transition hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-500/10 dark:text-blue-300"
+                            @click="applyQuickAction('extend_trial_30', 'Extend trial by 30 days')"
+                        >
+                            Trial +30 Days
+                        </button>
+                    </template>
+
+                    <template
+                        v-if="subscription.status === 'active' && subscription.current_period_ends_at !== null"
+                    >
+                        <button
+                            type="button"
+                            :disabled="quickActionForm.processing"
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300"
+                            @click="applyQuickAction('extend_month', 'Extend active period by one month')"
+                        >
+                            Extend +1 Month
+                        </button>
+                        <button
+                            type="button"
+                            :disabled="quickActionForm.processing"
+                            class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300"
+                            @click="applyQuickAction('extend_year', 'Extend active period by one year')"
+                        >
+                            Extend +1 Year
+                        </button>
+                    </template>
+
+                    <button
+                        type="button"
+                        :disabled="quickActionForm.processing"
+                        class="rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-green-700 disabled:opacity-50"
+                        @click="applyQuickAction('renew_monthly', 'Renew subscription for one month')"
+                    >
+                        Renew Monthly
+                    </button>
+                    <button
+                        type="button"
+                        :disabled="quickActionForm.processing"
+                        class="rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-green-700 disabled:opacity-50"
+                        @click="applyQuickAction('renew_annual', 'Renew subscription for one year')"
+                    >
+                        Renew Annual
+                    </button>
+                    <button
+                        type="button"
+                        :disabled="quickActionForm.processing"
+                        class="rounded-lg bg-violet-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-violet-700 disabled:opacity-50"
+                        @click="applyQuickAction('activate_indefinite', 'Activate subscription indefinitely')"
+                    >
+                        Activate Indefinitely
+                    </button>
+                </div>
+            </section>
 
             <form class="mt-6 space-y-6" @submit.prevent="savePackageAllocation">
                 <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">

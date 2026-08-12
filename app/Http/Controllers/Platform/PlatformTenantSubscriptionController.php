@@ -47,7 +47,6 @@ final class PlatformTenantSubscriptionController extends Controller
             return $this->responseService->error(
                 message: $exception->getMessage(),
                 code: 'SAAS_MANUAL_ALLOCATION_INVALID',
-                redirectTo: route('platform.tenants.show', $tenant),
             );
         }
 
@@ -63,7 +62,6 @@ final class PlatformTenantSubscriptionController extends Controller
                 'current_period_ends_at' => $subscription->current_period_ends_at,
                 'grace_ends_at' => $subscription->grace_ends_at,
             ],
-            redirectTo: route('platform.tenants.show', $tenant),
         );
     }
 

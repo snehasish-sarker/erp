@@ -181,7 +181,7 @@ final class PlatformSaasBillingController extends Controller
         }
 
         return $this->responseService->success(
-            message: 'Manual payment recorded successfully.',
+            message: 'Manual payment recorded successfully. Subscription access was not changed.',
             redirectTo: route('platform.billing.invoices.show', $saasInvoice),
         );
     }

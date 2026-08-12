@@ -157,12 +157,6 @@ final class SaasBillingService
                         'amount_paid_minor' => 0,
                         'balance_due_minor' => 0,
                     ])->save();
-
-                    $this->activateSubscriptionPeriod(
-                        tenant: $lockedTenant,
-                        subscription: $subscription,
-                        invoice: $invoice,
-                    );
                 }
 
                 $this->auditLogService->recordCustomEvent(
@@ -193,31 +187,6 @@ final class SaasBillingService
             },
             attempts: 5,
         );
-    }
-
-    public function activateSubscriptionPeriod(
-        Tenant $tenant,
-        TenantSubscription $subscription,
-        SaasInvoice $invoice,
-    ): void {
-        $subscription->forceFill([
-            'status' => 'active',
-            'billing_currency_code' => $invoice->currency_code,
-            'starts_at' => $subscription->starts_at ?? $invoice->period_starts_at,
-            'current_period_starts_at' => $invoice->period_starts_at,
-            'current_period_ends_at' => $invoice->period_ends_at,
-            'past_due_at' => null,
-            'past_due_reason' => null,
-            'grace_ends_at' => null,
-            'suspended_at' => null,
-            'suspension_reason' => null,
-            'cancelled_at' => null,
-            'ends_at' => null,
-        ])->save();
-
-        $tenant->forceFill([
-            'status' => 'active',
-        ])->save();
     }
 
     /**

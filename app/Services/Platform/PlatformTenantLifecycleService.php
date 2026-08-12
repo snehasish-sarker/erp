@@ -6,6 +6,7 @@ namespace App\Services\Platform;
 
 use App\Models\Tenant;
 use App\Models\TenantSubscription;
+use App\Services\Auditing\AuditLogService;
 use App\Support\Tenancy\TenantContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ final class PlatformTenantLifecycleService
 {
     public function __construct(
         private readonly TenantContext $tenantContext,
+        private readonly AuditLogService $auditLogService,
     ) {
     }
 
@@ -77,6 +79,8 @@ final class PlatformTenantLifecycleService
                         ->lockForUpdate()
                         ->firstOrFail();
 
+                    $oldTenantStatus = (string) $lockedTenant->status;
+
                     $lockedTenant->status = $targetStatus;
                     $lockedTenant->save();
 
@@ -85,7 +89,21 @@ final class PlatformTenantLifecycleService
                         ->lockForUpdate()
                         ->first();
 
+                    $oldSubscriptionValues = [];
+
                     if ($subscription instanceof TenantSubscription) {
+                        $oldSubscriptionValues = $subscription->only([
+                            'status',
+                            'trial_ends_at',
+                            'current_period_starts_at',
+                            'current_period_ends_at',
+                            'past_due_at',
+                            'grace_ends_at',
+                            'suspended_at',
+                            'cancelled_at',
+                            'ends_at',
+                        ]);
+
                         if ($targetStatus === 'active') {
                             $subscription->forceFill([
                                 'status' => 'active',
@@ -110,6 +128,33 @@ final class PlatformTenantLifecycleService
                             ])->save();
                         }
                     }
+
+                    $this->auditLogService->recordCustomEvent(
+                        subject: $lockedTenant,
+                        event: $targetStatus === 'active'
+                            ? 'saas_subscription_manually_activated'
+                            : 'saas_subscription_manually_suspended',
+                        oldValues: [
+                            'tenant_status' => $oldTenantStatus,
+                            ...$oldSubscriptionValues,
+                        ],
+                        newValues: [
+                            'tenant_status' => $targetStatus,
+                            'status' => $subscription?->status,
+                            'trial_ends_at' => $subscription?->trial_ends_at,
+                            'current_period_starts_at' => $subscription?->current_period_starts_at,
+                            'current_period_ends_at' => $subscription?->current_period_ends_at,
+                            'past_due_at' => $subscription?->past_due_at,
+                            'grace_ends_at' => $subscription?->grace_ends_at,
+                            'suspended_at' => $subscription?->suspended_at,
+                            'cancelled_at' => $subscription?->cancelled_at,
+                            'ends_at' => $subscription?->ends_at,
+                        ],
+                        metadata: [
+                            'tenant_subscription_id' => $subscription?->getKey(),
+                            'manual_lifecycle_action' => true,
+                        ],
+                    );
 
                     return $lockedTenant->refresh();
                 },

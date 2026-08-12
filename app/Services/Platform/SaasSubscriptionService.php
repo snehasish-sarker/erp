@@ -165,30 +165,14 @@ final class SaasSubscriptionService
         array $attributes,
         PlatformAdmin $assignedBy,
     ): TenantSubscription {
-        if ($plan->status !== 'active') {
-            throw new DomainException(
-                'Only active SaaS plans can be allocated to a tenant.',
-            );
-        }
-
         $billingCycle = (string) $attributes['billing_cycle'];
         $status = (string) $attributes['status'];
 
-        if (!in_array($billingCycle, ['monthly', 'annual'], true)) {
-            throw new DomainException(
-                'The SaaS billing cycle must be monthly or annual.',
-            );
-        }
-
-        if (!in_array(
-            $status,
-            ['trial', 'active', 'past_due', 'suspended', 'cancelled'],
-            true,
-        )) {
-            throw new DomainException(
-                'The selected subscription status is not supported.',
-            );
-        }
+        $this->assertManualAllocationInputs(
+            plan: $plan,
+            billingCycle: $billingCycle,
+            status: $status,
+        );
 
         $previousTenant = $this->tenantContext->get();
 
@@ -214,83 +198,108 @@ final class SaasSubscriptionService
                             'tenant_id' => (int) $lockedTenant->getKey(),
                         ]);
 
-                    $oldValues = $subscription->exists
-                        ? $subscription->only([
-                            'saas_plan_id',
-                            'status',
-                            'billing_cycle',
-                            'billing_currency_code',
-                            'starts_at',
-                            'trial_ends_at',
-                            'current_period_starts_at',
-                            'current_period_ends_at',
-                            'past_due_at',
-                            'grace_ends_at',
-                            'suspended_at',
-                            'cancelled_at',
-                            'ends_at',
-                        ])
-                        : [];
-
-                    $startsAt = $this->dateValue(
-                        $attributes['starts_at'] ?? null,
-                    ) ?? CarbonImmutable::now();
-
-                    $subscription->fill([
-                        'saas_plan_id' => (int) $plan->getKey(),
-                        'assigned_by_platform_admin_id' => (int) $assignedBy->getKey(),
-                        'status' => $status,
-                        'billing_cycle' => $billingCycle,
-                        'billing_currency_code' => $plan->billing_currency_code,
-                        'starts_at' => $startsAt,
-                    ]);
-
-                    $this->applyManualStatusFields(
+                    return $this->persistManualAllocation(
+                        tenant: $lockedTenant,
                         subscription: $subscription,
-                        status: $status,
+                        plan: $plan,
                         attributes: $attributes,
-                    );
-
-                    $subscription->lifecycle_processed_at = now();
-                    $subscription->save();
-
-                    $lockedTenant->forceFill([
-                        'status' => match ($status) {
-                            'trial' => 'trial',
-                            'active' => 'active',
-                            'past_due' => 'past_due',
-                            'suspended' => 'suspended',
-                            'cancelled' => 'cancelled',
-                        },
-                    ])->save();
-
-                    $this->auditLogService->recordCustomEvent(
-                        subject: $lockedTenant,
-                        event: 'saas_subscription_manually_updated',
-                        oldValues: $oldValues,
-                        newValues: [
-                            'saas_plan_id' => (int) $plan->getKey(),
-                            'saas_plan_code' => $plan->code,
-                            'status' => $subscription->status,
-                            'billing_cycle' => $subscription->billing_cycle,
-                            'billing_currency_code' => $subscription->billing_currency_code,
-                            'starts_at' => $subscription->starts_at,
-                            'trial_ends_at' => $subscription->trial_ends_at,
-                            'current_period_starts_at' => $subscription->current_period_starts_at,
-                            'current_period_ends_at' => $subscription->current_period_ends_at,
-                            'past_due_at' => $subscription->past_due_at,
-                            'grace_ends_at' => $subscription->grace_ends_at,
-                            'suspended_at' => $subscription->suspended_at,
-                            'cancelled_at' => $subscription->cancelled_at,
-                            'ends_at' => $subscription->ends_at,
-                        ],
-                        metadata: [
-                            'tenant_subscription_id' => (int) $subscription->getKey(),
+                        assignedBy: $assignedBy,
+                        billingCycle: $billingCycle,
+                        status: $status,
+                        auditEvent: 'saas_subscription_manually_updated',
+                        auditMetadata: [
                             'manual_allocation' => true,
                         ],
                     );
+                },
+                attempts: 5,
+            );
+        } finally {
+            $this->restoreTenantContext($previousTenant);
+        }
+    }
 
-                    return $subscription->refresh()->load('plan');
+    public function applyQuickAction(
+        Tenant $tenant,
+        string $action,
+        PlatformAdmin $assignedBy,
+    ): TenantSubscription {
+        if (!in_array(
+            $action,
+            [
+                'extend_month',
+                'extend_year',
+                'renew_monthly',
+                'renew_annual',
+                'activate_indefinite',
+            ],
+            true,
+        )) {
+            throw new DomainException(
+                'The selected subscription quick action is not supported.',
+            );
+        }
+
+        $previousTenant = $this->tenantContext->get();
+
+        try {
+            return DB::transaction(
+                function () use (
+                    $tenant,
+                    $action,
+                    $assignedBy,
+                ): TenantSubscription {
+                    $lockedTenant = Tenant::query()
+                        ->lockForUpdate()
+                        ->findOrFail($tenant->getKey());
+
+                    $this->tenantContext->set($lockedTenant);
+
+                    $subscription = TenantSubscription::query()
+                        ->where(
+                            'tenant_id',
+                            (int) $lockedTenant->getKey(),
+                        )
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$subscription instanceof TenantSubscription) {
+                        throw new DomainException(
+                            'The tenant does not have a SaaS subscription.',
+                        );
+                    }
+
+                    $plan = SaasPlan::query()
+                        ->whereKey((int) $subscription->saas_plan_id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$plan instanceof SaasPlan || $plan->status !== 'active') {
+                        throw new DomainException(
+                            'The current package is not active. Select an active package through manual package management first.',
+                        );
+                    }
+
+                    $attributes = $this->quickActionAttributes(
+                        subscription: $subscription,
+                        action: $action,
+                    );
+
+                    return $this->persistManualAllocation(
+                        tenant: $lockedTenant,
+                        subscription: $subscription,
+                        plan: $plan,
+                        attributes: $attributes,
+                        assignedBy: $assignedBy,
+                        billingCycle: (string) $attributes['billing_cycle'],
+                        status: 'active',
+                        auditEvent: 'saas_subscription_quick_action_applied',
+                        auditMetadata: [
+                            'quick_action' => $action,
+                            'quick_action_label' => $this->quickActionLabel($action),
+                            'manual_allocation' => true,
+                        ],
+                    );
                 },
                 attempts: 5,
             );
@@ -322,6 +331,229 @@ final class SaasSubscriptionService
             assignedBy: $assignedBy,
             billingCycle: 'monthly',
         );
+    }
+
+    private function assertManualAllocationInputs(
+        SaasPlan $plan,
+        string $billingCycle,
+        string $status,
+    ): void {
+        if ($plan->status !== 'active') {
+            throw new DomainException(
+                'Only active SaaS plans can be allocated to a tenant.',
+            );
+        }
+
+        if (!in_array($billingCycle, ['monthly', 'annual'], true)) {
+            throw new DomainException(
+                'The SaaS billing cycle must be monthly or annual.',
+            );
+        }
+
+        if (!in_array(
+            $status,
+            ['trial', 'active', 'past_due', 'suspended', 'cancelled'],
+            true,
+        )) {
+            throw new DomainException(
+                'The selected subscription status is not supported.',
+            );
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     * @param array<string, mixed> $auditMetadata
+     */
+    private function persistManualAllocation(
+        Tenant $tenant,
+        TenantSubscription $subscription,
+        SaasPlan $plan,
+        array $attributes,
+        PlatformAdmin $assignedBy,
+        string $billingCycle,
+        string $status,
+        string $auditEvent,
+        array $auditMetadata,
+    ): TenantSubscription {
+        $this->assertManualAllocationInputs(
+            plan: $plan,
+            billingCycle: $billingCycle,
+            status: $status,
+        );
+
+        $oldValues = $subscription->exists
+            ? $subscription->only([
+                'saas_plan_id',
+                'status',
+                'billing_cycle',
+                'billing_currency_code',
+                'starts_at',
+                'trial_ends_at',
+                'current_period_starts_at',
+                'current_period_ends_at',
+                'past_due_at',
+                'grace_ends_at',
+                'suspended_at',
+                'cancelled_at',
+                'ends_at',
+            ])
+            : [];
+
+        $startsAt = $this->dateValue(
+            $attributes['starts_at'] ?? null,
+        ) ?? CarbonImmutable::now();
+
+        $subscription->fill([
+            'saas_plan_id' => (int) $plan->getKey(),
+            'assigned_by_platform_admin_id' => (int) $assignedBy->getKey(),
+            'status' => $status,
+            'billing_cycle' => $billingCycle,
+            'billing_currency_code' => $plan->billing_currency_code,
+            'starts_at' => $startsAt,
+        ]);
+
+        $this->applyManualStatusFields(
+            subscription: $subscription,
+            status: $status,
+            attributes: $attributes,
+        );
+
+        $subscription->lifecycle_processed_at = now();
+        $subscription->save();
+
+        $tenant->forceFill([
+            'status' => match ($status) {
+                'trial' => 'trial',
+                'active' => 'active',
+                'past_due' => 'past_due',
+                'suspended' => 'suspended',
+                'cancelled' => 'cancelled',
+            },
+        ])->save();
+
+        $this->auditLogService->recordCustomEvent(
+            subject: $tenant,
+            event: $auditEvent,
+            oldValues: $oldValues,
+            newValues: [
+                'saas_plan_id' => (int) $plan->getKey(),
+                'saas_plan_code' => $plan->code,
+                'status' => $subscription->status,
+                'billing_cycle' => $subscription->billing_cycle,
+                'billing_currency_code' => $subscription->billing_currency_code,
+                'starts_at' => $subscription->starts_at,
+                'trial_ends_at' => $subscription->trial_ends_at,
+                'current_period_starts_at' => $subscription->current_period_starts_at,
+                'current_period_ends_at' => $subscription->current_period_ends_at,
+                'past_due_at' => $subscription->past_due_at,
+                'grace_ends_at' => $subscription->grace_ends_at,
+                'suspended_at' => $subscription->suspended_at,
+                'cancelled_at' => $subscription->cancelled_at,
+                'ends_at' => $subscription->ends_at,
+            ],
+            metadata: [
+                'tenant_subscription_id' => (int) $subscription->getKey(),
+                ...$auditMetadata,
+            ],
+        );
+
+        return $subscription->refresh()->load('plan');
+    }
+
+    /** @return array<string, mixed> */
+    private function quickActionAttributes(
+        TenantSubscription $subscription,
+        string $action,
+    ): array {
+        $now = CarbonImmutable::now();
+        $startsAt = $subscription->starts_at !== null
+            ? CarbonImmutable::instance($subscription->starts_at)
+            : $now;
+
+        if (in_array($action, ['extend_month', 'extend_year'], true)) {
+            if ($subscription->status !== 'active') {
+                throw new DomainException(
+                    'Only an active subscription can be extended. Use Renew Monthly or Renew Annual to reactivate another lifecycle status.',
+                );
+            }
+
+            if ($subscription->current_period_ends_at === null) {
+                throw new DomainException(
+                    'An indefinite active subscription does not have an end date to extend.',
+                );
+            }
+
+            $existingEnd = CarbonImmutable::instance(
+                $subscription->current_period_ends_at,
+            );
+            $baseEnd = $existingEnd->isFuture()
+                ? $existingEnd
+                : $now;
+            $periodStart = $subscription->current_period_starts_at !== null
+                ? CarbonImmutable::instance(
+                    $subscription->current_period_starts_at,
+                )
+                : $now;
+
+            return [
+                'billing_cycle' => $subscription->billing_cycle,
+                'status' => 'active',
+                'starts_at' => $startsAt,
+                'trial_ends_at' => null,
+                'current_period_starts_at' => $periodStart,
+                'current_period_ends_at' => $action === 'extend_month'
+                    ? $baseEnd->addMonthNoOverflow()
+                    : $baseEnd->addYear(),
+                'past_due_at' => null,
+                'grace_ends_at' => null,
+                'ends_at' => null,
+            ];
+        }
+
+        if (in_array($action, ['renew_monthly', 'renew_annual'], true)) {
+            $billingCycle = $action === 'renew_monthly'
+                ? 'monthly'
+                : 'annual';
+
+            return [
+                'billing_cycle' => $billingCycle,
+                'status' => 'active',
+                'starts_at' => $startsAt,
+                'trial_ends_at' => null,
+                'current_period_starts_at' => $now,
+                'current_period_ends_at' => $billingCycle === 'monthly'
+                    ? $now->addMonthNoOverflow()
+                    : $now->addYear(),
+                'past_due_at' => null,
+                'grace_ends_at' => null,
+                'ends_at' => null,
+            ];
+        }
+
+        return [
+            'billing_cycle' => $subscription->billing_cycle,
+            'status' => 'active',
+            'starts_at' => $startsAt,
+            'trial_ends_at' => null,
+            'current_period_starts_at' => $now,
+            'current_period_ends_at' => null,
+            'past_due_at' => null,
+            'grace_ends_at' => null,
+            'ends_at' => null,
+        ];
+    }
+
+    private function quickActionLabel(string $action): string
+    {
+        return match ($action) {
+            'extend_month' => 'Extend active period by one month',
+            'extend_year' => 'Extend active period by one year',
+            'renew_monthly' => 'Renew for one month',
+            'renew_annual' => 'Renew for one year',
+            'activate_indefinite' => 'Activate indefinitely',
+            default => 'Subscription quick action',
+        };
     }
 
     /**

@@ -6,18 +6,31 @@ namespace App\Http\Controllers\Platform;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlatformAdmin;
-use App\Models\Tenant;
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Services\Platform\SaasOperationalDashboardService;
+use App\Services\Platform\SaasSubscriptionHistoryService;
+use App\Services\Platform\SaasUsageMonitoringService;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class PlatformDashboardController extends Controller
 {
-    public function __invoke(
-        Request $request,
-    ): Response {
+    private const RECENT_ACTIVITY_LIMIT = 8;
+
+    private const USAGE_ALERT_LIMIT = 6;
+
+    private const SUBSCRIPTION_ALERT_LIMIT = 8;
+
+    public function __construct(
+        private readonly SaasOperationalDashboardService $dashboardService,
+        private readonly SaasUsageMonitoringService $usageMonitoringService,
+        private readonly SaasSubscriptionHistoryService $historyService,
+    ) {
+    }
+
+    public function __invoke(): Response
+    {
         $admin = Auth::guard('platform')->user();
 
         abort_unless(
@@ -25,10 +38,13 @@ final class PlatformDashboardController extends Controller
             403,
         );
 
-        $tenantCounts = Tenant::query()
-            ->selectRaw('status, COUNT(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
+        $now = CarbonImmutable::now();
+        $historyMetrics = $this->historyService->metrics();
+        $recentActivity = $this->historyService->paginate([
+            'sort' => 'created_at',
+            'direction' => 'desc',
+            'per_page' => self::RECENT_ACTIVITY_LIMIT,
+        ]);
 
         return Inertia::render(
             'Platform/Dashboard',
@@ -39,15 +55,21 @@ final class PlatformDashboardController extends Controller
                     'email' => $admin->email,
                     'last_login_at' => $admin->last_login_at?->toIso8601String(),
                 ],
-
-                'metrics' => [
-                    'tenants_total' => Tenant::query()->count(),
-                    'tenants_trial' => (int) ($tenantCounts['trial'] ?? 0),
-                    'tenants_active' => (int) ($tenantCounts['active'] ?? 0),
-                    'tenants_suspended' => (int) ($tenantCounts['suspended'] ?? 0),
-                    'tenants_past_due' => (int) ($tenantCounts['past_due'] ?? 0),
-                    'tenant_users_total' => User::query()->count(),
-                ],
+                'metrics' => $this->dashboardService->metrics($now),
+                'usageMetrics' => $this->usageMonitoringService->metrics(),
+                'recentChanges30Days' => $historyMetrics['last_30_days'],
+                'packageDistribution' => $this->dashboardService
+                    ->packageDistribution(),
+                'subscriptionAlerts' => $this->dashboardService
+                    ->subscriptionAlerts(
+                        now: $now,
+                        limit: self::SUBSCRIPTION_ALERT_LIMIT,
+                    ),
+                'usageAlerts' => $this->usageMonitoringService->alerts(
+                    self::USAGE_ALERT_LIMIT,
+                ),
+                'recentActivity' => $recentActivity['data'],
+                'expiringSoonDays' => SaasOperationalDashboardService::EXPIRING_SOON_DAYS,
             ],
         );
     }
