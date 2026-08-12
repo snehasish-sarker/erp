@@ -65,6 +65,10 @@ final class DocumentTypeRegistry
             'label' => 'Stock Adjustment',
             'default_prefix' => 'SA-{YYYY}-',
         ],
+        'stock_count' => [
+            'label' => 'Stock Count',
+            'default_prefix' => 'SC-{YYYY}-',
+        ],
         'customer_receipt' => [
             'label' => 'Customer Receipt',
             'default_prefix' => 'CR-{YYYY}-',

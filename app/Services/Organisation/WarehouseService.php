@@ -8,12 +8,18 @@ use App\Models\Branch;
 use App\Models\ProductWarehouseSetting;
 use App\Models\PurchaseOrder;
 use App\Models\Warehouse;
+use App\Services\Saas\SaasUsageLimitService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class WarehouseService
 {
+    public function __construct(
+        private readonly SaasUsageLimitService $saasUsageLimitService,
+    ) {
+    }
+
     /**
      * @param array{
      *     branch_id: int,
@@ -29,6 +35,9 @@ final class WarehouseService
     {
         return DB::transaction(
             function () use ($attributes): Warehouse {
+                $this->saasUsageLimitService
+                    ->assertCanCreateWarehouse();
+
                 $this->lockBranch(
                     $attributes['branch_id'],
                 );

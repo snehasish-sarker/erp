@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnforceSaasFeatureAccess;
 use App\Http\Middleware\EnsureBranchAccess;
 use App\Http\Middleware\EnsureTenantIsActive;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -27,6 +28,7 @@ return Application::configure(
             $middleware->web(
                 append: [
                     HandleInertiaRequests::class,
+                    EnforceSaasFeatureAccess::class,
                 ],
             );
 

@@ -27,6 +27,7 @@ final class IndexFiscalYearRequest extends FormRequest
                 'string',
                 'max:100',
             ],
+
             'status' => [
                 'nullable',
                 'string',
@@ -35,8 +36,9 @@ final class IndexFiscalYearRequest extends FormRequest
                     'closed',
                 ]),
             ],
+
             'sort' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'name',
@@ -47,16 +49,18 @@ final class IndexFiscalYearRequest extends FormRequest
                     'created_at',
                 ]),
             ],
+
             'direction' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'asc',
                     'desc',
                 ]),
             ],
+
             'per_page' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::in([
                     10,
@@ -71,18 +75,49 @@ final class IndexFiscalYearRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'search' => trim(
-                (string) $this->input('search'),
+            'search' => $this->nullableString(
+                'search',
             ),
-            'status' => trim(
-                (string) $this->input('status'),
+
+            'status' => $this->nullableString(
+                'status',
             ),
-            'sort' => trim(
-                (string) $this->input('sort'),
-            ),
-            'direction' => trim(
-                (string) $this->input('direction'),
-            ),
+
+            'sort' => $this->filled('sort')
+                ? trim(
+                    (string) $this->input('sort'),
+                )
+                : 'start_date',
+
+            'direction' => $this->filled('direction')
+                ? mb_strtolower(
+                    trim(
+                        (string) $this->input(
+                            'direction',
+                        ),
+                    ),
+                )
+                : 'desc',
+
+            'per_page' => $this->filled('per_page')
+                ? $this->input('per_page')
+                : 25,
         ]);
+    }
+
+    private function nullableString(
+        string $field,
+    ): ?string {
+        if (!$this->filled($field)) {
+            return null;
+        }
+
+        $value = trim(
+            (string) $this->input($field),
+        );
+
+        return $value === ''
+            ? null
+            : $value;
     }
 }

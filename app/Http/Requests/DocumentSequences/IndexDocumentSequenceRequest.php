@@ -111,28 +111,49 @@ final class IndexDocumentSequenceRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $sort = trim(
+            (string) $this->input('sort'),
+        );
+
+        $direction = mb_strtolower(
+            trim(
+                (string) $this->input('direction'),
+            ),
+        );
+
         $this->merge([
             'search' => trim(
                 (string) $this->input('search'),
             ),
+
             'scope' => trim(
                 (string) $this->input('scope'),
             ),
+
             'document_type' => trim(
                 (string) $this->input('document_type'),
             ),
+
             'reset_policy' => trim(
                 (string) $this->input('reset_policy'),
             ),
+
             'status' => trim(
                 (string) $this->input('status'),
             ),
-            'sort' => trim(
-                (string) $this->input('sort'),
-            ),
-            'direction' => trim(
-                (string) $this->input('direction'),
-            ),
+
+            /*
+             * Keep omitted/blank sorting values as null so the controller's
+             * default sort column and direction are applied.
+             */
+            'sort' => $sort === ''
+                ? null
+                : $sort,
+
+            'direction' => $direction === ''
+                ? null
+                : $direction,
+
             'branch_id' => $this->input('branch_id') === ''
                 ? null
                 : $this->input('branch_id'),

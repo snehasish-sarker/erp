@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\AccessControl;
 
 use App\Models\User;
+use App\Services\Saas\SaasUsageLimitService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +17,7 @@ final class UserService
 {
     public function __construct(
         private readonly TenantContext $tenantContext,
+        private readonly SaasUsageLimitService $saasUsageLimitService,
     ) {
     }
 
@@ -38,6 +40,11 @@ final class UserService
                 $attributes,
                 $roleIds,
             ): User {
+                if ($attributes['status'] === 'active') {
+                    $this->saasUsageLimitService
+                        ->assertCanActivateUser();
+                }
+
                 $user = new User($attributes);
 
                 $user->tenant_id = $this->tenantContext
@@ -103,6 +110,14 @@ final class UserService
                 $actor,
                 $status,
             ): User {
+                if (
+                    $user->status !== 'active'
+                    && $status === 'active'
+                ) {
+                    $this->saasUsageLimitService
+                        ->assertCanActivateUser();
+                }
+
                 if (
                     $user->is($actor)
                     && $status !== 'active'

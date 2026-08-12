@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Auditing;
 
 use App\Models\AuditLog;
+use App\Models\PlatformAdmin;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
@@ -172,22 +173,48 @@ final class AuditLogService
             return;
         }
 
-        $actor = Auth::user();
+        $requestContext = $this->requestContext();
+
+        $actorUserId = null;
+        $actorName = null;
+        $actorEmail = null;
 
         if (
-            !$actor instanceof User
-            || (int) $actor->tenant_id !== $tenantId
+            $requestContext['route_name'] !== null
+            && str_starts_with(
+                $requestContext['route_name'],
+                'platform.',
+            )
         ) {
-            $actor = null;
-        }
+            $platformActor = Auth::guard('platform')->user();
 
-        $requestContext = $this->requestContext();
+            if ($platformActor instanceof PlatformAdmin) {
+                $actorName = $platformActor->name;
+                $actorEmail = $platformActor->email;
+                $metadata = [
+                    ...$metadata,
+                    'actor_type' => 'platform_admin',
+                    'platform_admin_id' => (int) $platformActor->getKey(),
+                ];
+            }
+        } else {
+            $actor = Auth::user();
+
+            if (
+                $actor instanceof User
+                && (int) $actor->tenant_id === $tenantId
+            ) {
+                $actorUserId = (int) $actor->getKey();
+                $actorName = $actor->name;
+                $actorEmail = $actor->email;
+            }
+        }
 
         AuditLog::query()->create([
             'tenant_id' => $tenantId,
-            'actor_user_id' => $actor?->getKey(),
-            'actor_name' => $actor?->name,
-            'actor_email' => $actor?->email,
+            'actor_user_id' => $actorUserId,
+            'actor_name' => $actorName,
+            'actor_email' => $actorEmail,
             'event' => $event,
             'subject_type' => $subject->getMorphClass(),
 

@@ -87,3 +87,17 @@ Schedule::command(
         ),
     )
     ->withoutOverlapping(30);
+Schedule::command(
+    sprintf(
+        'saas:subscriptions:process --limit=%d',
+        max(
+            1,
+            (int) config(
+                'saas.subscription.lifecycle_batch_limit',
+                500,
+            ),
+        ),
+    ),
+)
+    ->hourly()
+    ->withoutOverlapping(55);

@@ -7,11 +7,17 @@ namespace App\Services\Organisation;
 use App\Models\Branch;
 use App\Models\ProductBranchSetting;
 use App\Models\PurchaseOrder;
+use App\Services\Saas\SaasUsageLimitService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final class BranchService
 {
+    public function __construct(
+        private readonly SaasUsageLimitService $saasUsageLimitService,
+    ) {
+    }
+
     /**
      * @param array{
      *     name: string,
@@ -25,8 +31,14 @@ final class BranchService
     public function create(array $attributes): Branch
     {
         return DB::transaction(
-            static fn (): Branch =>
-                Branch::query()->create($attributes),
+            function () use ($attributes): Branch {
+                $this->saasUsageLimitService
+                    ->assertCanCreateBranch();
+
+                return Branch::query()->create(
+                    $attributes,
+                );
+            },
             attempts: 5,
         );
     }

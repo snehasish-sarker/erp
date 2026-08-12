@@ -49,7 +49,7 @@ final class IndexUnitRequest extends FormRequest
             ],
 
             'sort' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'name',
@@ -63,7 +63,7 @@ final class IndexUnitRequest extends FormRequest
             ],
 
             'direction' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'asc',
@@ -72,7 +72,7 @@ final class IndexUnitRequest extends FormRequest
             ],
 
             'per_page' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::in([
                     10,
@@ -87,25 +87,59 @@ final class IndexUnitRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'search' => trim(
-                (string) $this->input('search'),
+            'search' => $this->nullableString(
+                'search',
             ),
 
-            'category' => trim(
-                (string) $this->input('category'),
+            'category' => $this->nullableString(
+                'category',
             ),
 
-            'status' => trim(
-                (string) $this->input('status'),
+            'status' => $this->nullableString(
+                'status',
+                lowercase: true,
             ),
 
-            'sort' => trim(
-                (string) $this->input('sort'),
-            ),
+            'sort' => $this->filled('sort')
+                ? trim(
+                    (string) $this->input('sort'),
+                )
+                : 'name',
 
-            'direction' => trim(
-                (string) $this->input('direction'),
-            ),
+            'direction' => $this->filled('direction')
+                ? mb_strtolower(
+                    trim(
+                        (string) $this->input(
+                            'direction',
+                        ),
+                    ),
+                )
+                : 'asc',
+
+            'per_page' => $this->filled('per_page')
+                ? $this->input('per_page')
+                : 25,
         ]);
+    }
+
+    private function nullableString(
+        string $field,
+        bool $lowercase = false,
+    ): ?string {
+        if (!$this->filled($field)) {
+            return null;
+        }
+
+        $value = trim(
+            (string) $this->input($field),
+        );
+
+        if ($value === '') {
+            return null;
+        }
+
+        return $lowercase
+            ? mb_strtolower($value)
+            : $value;
     }
 }

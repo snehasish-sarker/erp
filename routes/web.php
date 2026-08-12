@@ -30,6 +30,11 @@ use App\Http\Controllers\Purchasing\SupplierInvoiceController;
 use App\Http\Controllers\Sales\SalesOrderController;
 use App\Http\Controllers\Settings\CompanySettingsController;
 use App\Http\Controllers\Settings\DocumentSequenceController;
+use App\Http\Controllers\Inventory\InventoryController;
+use App\Http\Controllers\Inventory\StockLedgerController;
+use App\Http\Controllers\Inventory\InventoryTransferController;
+use App\Http\Controllers\Inventory\InventoryAdjustmentController;
+use App\Http\Controllers\Inventory\InventoryStockCountController;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Route;
@@ -113,6 +118,159 @@ Route::middleware([
         ->name('dashboard');
 
     Route::prefix('erp')->group(function (): void {
+
+    /*
+|--------------------------------------------------------------------------
+| Inventory Stock Counts
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('inventory/counts')
+    ->name('inventory.counts.')
+    ->controller(InventoryStockCountController::class)
+    ->middleware('permission:inventory.count')
+    ->group(function (): void {
+        Route::get(
+            '/',
+            'index',
+        )->name('index');
+
+        Route::get(
+            '/create',
+            'create',
+        )->name('create');
+
+        Route::post(
+            '/',
+            'store',
+        )->name('store');
+
+        Route::get(
+            '/{inventoryStockCount}',
+            'show',
+        )->name('show');
+
+        Route::post(
+            '/{inventoryStockCount}/post',
+            'post',
+        )->name('post');
+
+        Route::post(
+            '/{inventoryStockCount}/cancel',
+            'cancel',
+        )->name('cancel');
+    });
+
+    /*
+|--------------------------------------------------------------------------
+| Inventory Adjustments
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('inventory/adjustments')
+    ->name('inventory.adjustments.')
+    ->controller(InventoryAdjustmentController::class)
+    ->middleware('permission:inventory.adjust')
+    ->group(function (): void {
+        Route::get(
+            '/',
+            'index',
+        )->name('index');
+
+        Route::get(
+            '/create',
+            'create',
+        )->name('create');
+
+        Route::post(
+            '/',
+            'store',
+        )->name('store');
+
+        Route::get(
+            '/{inventoryAdjustment}',
+            'show',
+        )->name('show');
+
+        Route::post(
+            '/{inventoryAdjustment}/post',
+            'post',
+        )->name('post');
+
+        Route::post(
+            '/{inventoryAdjustment}/cancel',
+            'cancel',
+        )->name('cancel');
+    });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Inventory
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/inventory',
+            [InventoryController::class, 'index'],
+        )
+            ->middleware('permission:inventory.view')
+            ->name('inventory.index');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Inventory Stock Ledger
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get(
+            '/inventory/ledger',
+            [StockLedgerController::class, 'index'],
+        )
+            ->middleware('permission:inventory.view_ledger')
+            ->name('inventory.ledger.index');
+
+        /*
+|--------------------------------------------------------------------------
+| Inventory Transfers
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('inventory/transfers')
+    ->name('inventory.transfers.')
+    ->controller(InventoryTransferController::class)
+    ->middleware('permission:inventory.transfer')
+    ->group(function (): void {
+        Route::get(
+            '/',
+            'index',
+        )->name('index');
+
+        Route::get(
+            '/create',
+            'create',
+        )->name('create');
+
+        Route::post(
+            '/',
+            'store',
+        )->name('store');
+
+        Route::get(
+            '/{inventoryTransfer}',
+            'show',
+        )->name('show');
+
+        Route::post(
+            '/{inventoryTransfer}/post',
+            'post',
+        )->name('post');
+
+        Route::post(
+            '/{inventoryTransfer}/cancel',
+            'cancel',
+        )->name('cancel');
+    });    
+
         /*
         |--------------------------------------------------------------------------
         | Company Settings
@@ -543,7 +701,6 @@ Route::middleware([
         )
             ->middleware('permission:files.delete')
             ->name('files.destroy');
-    });
 
     /*
     |--------------------------------------------------------------------------
@@ -996,7 +1153,7 @@ Route::middleware([
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('erp/sales-orders')
+    Route::prefix('sales-orders')
         ->name('sales-orders.')
         ->controller(SalesOrderController::class)
         ->group(function (): void {
@@ -1648,6 +1805,8 @@ Route::middleware([
                 ->name('reverse');
         });
 
+    });
+
     /*
     |--------------------------------------------------------------------------
     | Accounts Payable Reports
@@ -1698,3 +1857,5 @@ Route::post(
 )
     ->middleware('auth')
     ->name('logout');
+
+require __DIR__.'/super-admin.php';

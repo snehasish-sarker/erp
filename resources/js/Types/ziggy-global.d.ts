@@ -1,4 +1,6 @@
-import { route as routeFn } from 'ziggy-js';
+import {
+    route as routeFn,
+} from 'ziggy-js';
 
 declare global {
     var route: typeof routeFn;

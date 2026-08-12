@@ -49,7 +49,7 @@ final class IndexSupplierRequest extends FormRequest
             ],
 
             'sort' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'name',
@@ -62,7 +62,7 @@ final class IndexSupplierRequest extends FormRequest
             ],
 
             'direction' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'asc',
@@ -71,7 +71,7 @@ final class IndexSupplierRequest extends FormRequest
             ],
 
             'per_page' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::in([
                     10,
@@ -86,35 +86,60 @@ final class IndexSupplierRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'search' => trim(
-                (string) $this->input('search'),
+            'search' => $this->nullableString(
+                'search',
             ),
 
-            'supplier_type' => mb_strtolower(
-                trim(
-                    (string) $this->input(
-                        'supplier_type',
+            'supplier_type' => $this->nullableString(
+                'supplier_type',
+                lowercase: true,
+            ),
+
+            'status' => $this->nullableString(
+                'status',
+                lowercase: true,
+            ),
+
+            'sort' => $this->filled('sort')
+                ? trim(
+                    (string) $this->input('sort'),
+                )
+                : 'name',
+
+            'direction' => $this->filled('direction')
+                ? mb_strtolower(
+                    trim(
+                        (string) $this->input(
+                            'direction',
+                        ),
                     ),
-                ),
-            ),
+                )
+                : 'asc',
 
-            'status' => mb_strtolower(
-                trim(
-                    (string) $this->input('status'),
-                ),
-            ),
-
-            'sort' => trim(
-                (string) $this->input('sort'),
-            ),
-
-            'direction' => mb_strtolower(
-                trim(
-                    (string) $this->input(
-                        'direction',
-                    ),
-                ),
-            ),
+            'per_page' => $this->filled('per_page')
+                ? $this->input('per_page')
+                : 25,
         ]);
+    }
+
+    private function nullableString(
+        string $field,
+        bool $lowercase = false,
+    ): ?string {
+        if (!$this->filled($field)) {
+            return null;
+        }
+
+        $value = trim(
+            (string) $this->input($field),
+        );
+
+        if ($value === '') {
+            return null;
+        }
+
+        return $lowercase
+            ? mb_strtolower($value)
+            : $value;
     }
 }

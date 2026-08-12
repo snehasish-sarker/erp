@@ -51,7 +51,7 @@ final class IndexUserNotificationRequest extends FormRequest
                 ]),
             ],
             'sort' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'created_at',
@@ -62,7 +62,7 @@ final class IndexUserNotificationRequest extends FormRequest
                 ]),
             ],
             'direction' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'asc',
@@ -70,7 +70,7 @@ final class IndexUserNotificationRequest extends FormRequest
                 ]),
             ],
             'per_page' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::in([
                     10,
@@ -85,24 +85,57 @@ final class IndexUserNotificationRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'search' => trim(
-                (string) $this->input('search'),
+            'search' => $this->nullableString(
+                'search',
             ),
-            'category' => trim(
-                (string) $this->input('category'),
+
+            'category' => $this->nullableString(
+                'category',
             ),
-            'severity' => trim(
-                (string) $this->input('severity'),
+
+            'severity' => $this->nullableString(
+                'severity',
             ),
-            'status' => trim(
-                (string) $this->input('status'),
+
+            'status' => $this->nullableString(
+                'status',
             ),
-            'sort' => trim(
-                (string) $this->input('sort'),
-            ),
-            'direction' => trim(
-                (string) $this->input('direction'),
-            ),
+
+            'sort' => $this->filled('sort')
+                ? trim(
+                    (string) $this->input('sort'),
+                )
+                : 'created_at',
+
+            'direction' => $this->filled('direction')
+                ? mb_strtolower(
+                    trim(
+                        (string) $this->input(
+                            'direction',
+                        ),
+                    ),
+                )
+                : 'desc',
+
+            'per_page' => $this->filled('per_page')
+                ? $this->input('per_page')
+                : 25,
         ]);
+    }
+
+    private function nullableString(
+        string $field,
+    ): ?string {
+        if (!$this->filled($field)) {
+            return null;
+        }
+
+        $value = trim(
+            (string) $this->input($field),
+        );
+
+        return $value === ''
+            ? null
+            : $value;
     }
 }

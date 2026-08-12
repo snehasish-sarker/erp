@@ -36,12 +36,16 @@ final class DatabaseSeeder extends Seeder
                 'branch_id' => null,
                 'name' => 'ERP Administrator',
                 'status' => 'active',
-                'password' => Hash::make('Password123!'),
+                'password' => Hash::make(
+                    'Password123!',
+                ),
                 'email_verified_at' => now(),
             ],
         );
 
         $this->call([
+            PlatformAdminSeeder::class,
+            SaasPlanSeeder::class,
             PermissionSeeder::class,
             DefaultChartOfAccountsSeeder::class,
         ]);

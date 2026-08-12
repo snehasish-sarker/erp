@@ -78,13 +78,13 @@ final class IndexProductRequest extends FormRequest
             ],
 
             'sort' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in($sortOptions),
             ],
 
             'direction' => [
-                'nullable',
+                'required',
                 'string',
                 Rule::in([
                     'asc',
@@ -93,7 +93,7 @@ final class IndexProductRequest extends FormRequest
             ],
 
             'per_page' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::in([
                     10,
@@ -136,17 +136,25 @@ final class IndexProductRequest extends FormRequest
                 ),
             ),
 
-            'sort' => trim(
-                (string) $this->input('sort'),
-            ),
+            'sort' => $this->filled('sort')
+                ? trim(
+                    (string) $this->input('sort'),
+                )
+                : 'name',
 
-            'direction' => mb_strtolower(
-                trim(
-                    (string) $this->input(
-                        'direction',
+            'direction' => $this->filled('direction')
+                ? mb_strtolower(
+                    trim(
+                        (string) $this->input(
+                            'direction',
+                        ),
                     ),
-                ),
-            ),
+                )
+                : 'asc',
+
+            'per_page' => $this->filled('per_page')
+                ? $this->input('per_page')
+                : 25,
         ]);
     }
 }

@@ -19,6 +19,7 @@ import {
     BarChartIcon
 } from '@/Icons';
 import { useAuthorization } from '@/Composables/useAuthorization';
+import { useSaasEntitlements } from '@/Composables/useSaasEntitlements';
 import { useSidebar } from '@/Composables/useSidebar';
 
 const namedPath = (name: string): string =>
@@ -28,6 +29,7 @@ interface SubmenuItem {
     name: string;
     path: string;
     permission?: string;
+    features?: readonly string[];
 }
 
 interface MenuItem {
@@ -35,6 +37,7 @@ interface MenuItem {
     icon: Component;
     path?: string;
     permission?: string;
+    features?: readonly string[];
     subItems?: SubmenuItem[];
 }
 
@@ -46,6 +49,7 @@ interface MenuGroup {
 const page = usePage();
 
 const { can } = useAuthorization();
+const { canUseAll } = useSaasEntitlements();
 
 const {
     isExpanded,
@@ -104,6 +108,7 @@ const menuGroups: MenuGroup[] = [
                 icon: TableIcon,
                 path: '/erp/exports',
                 permission: 'exports.view',
+                features: ['audit_exports.module'],
             },
             {
                 name: 'System Operations',
@@ -151,6 +156,7 @@ const menuGroups: MenuGroup[] = [
                 icon: CalenderIcon,
                 path: '/erp/accounting-periods',
                 permission: 'accounting_periods.view',
+                features: ['financial_accounting.module'],
             },
             {
                 name: 'Access Control',
@@ -173,6 +179,7 @@ const menuGroups: MenuGroup[] = [
                 icon: TableIcon,
                 path: '/erp/audit-logs',
                 permission: 'audit_logs.view',
+                features: ['audit_exports.module'],
             },
         ],
     },
@@ -187,21 +194,25 @@ const menuGroups: MenuGroup[] = [
                         name: 'Products',
                         path: '/erp/products',
                         permission: 'products.view',
+                        features: ['master_data.module'],
                     },
                     {
                         name: 'Categories',
                         path: '/erp/product-categories',
                         permission: 'product_categories.view',
+                        features: ['master_data.module'],
                     },
                     {
                         name: 'Brands',
                         path: '/erp/brands',
                         permission: 'brands.view',
+                        features: ['master_data.module'],
                     },
                     {
                         name: 'Units',
                         path: '/erp/units',
                         permission: 'units.view',
+                        features: ['master_data.module'],
                     },
                 ],
             },
@@ -210,12 +221,14 @@ const menuGroups: MenuGroup[] = [
                 icon: UserCircleIcon,
                 path: '/erp/suppliers',
                 permission: 'suppliers.view',
+                features: ['master_data.module'],
             },
             {
                 name: 'Customers',
                 icon: UserCircleIcon,
                 path: '/erp/customers',
                 permission: 'customers.view',
+                features: ['master_data.module'],
             },
         ],
     },
@@ -230,31 +243,37 @@ const menuGroups: MenuGroup[] = [
                         name: 'Purchase Orders',
                         path: '/erp/purchase-orders',
                         permission: 'purchase_orders.view',
+                        features: ['purchasing.module'],
                     },
                     {
                         name: 'Goods Receipts',
                         path: '/erp/goods-receipts',
                         permission: 'goods_receipts.view',
+                        features: ['purchasing.module'],
                     },
                     {
                         name: 'Purchase Returns',
                         path: '/erp/purchase-returns',
                         permission: 'purchase_returns.view',
+                        features: ['purchasing.module'],
                     },
                     {
                         name: 'Supplier Invoices',
                         path: '/erp/supplier-invoices',
                         permission: 'supplier_invoices.view',
+                        features: ['purchasing.module'],
                     },
                     {
                         name: 'Supplier Debit Notes',
                         path: '/erp/supplier-debit-notes',
                         permission: 'supplier_debit_notes.view',
+                        features: ['purchasing.module'],
                     },
                     {
                         name: 'Supplier Payments',
                         path: '/erp/supplier-payments',
                         permission: 'supplier_payments.view',
+                        features: ['accounts_payable.module'],
                     },
                 ],
             },
@@ -266,46 +285,55 @@ const menuGroups: MenuGroup[] = [
                         name: 'Sales Orders',
                         path: '/erp/sales-orders',
                         permission: 'sales_orders.view',
+                        features: ['sales.module'],
                     },
                     {
                         name: 'Dispatches',
                         path: '/erp/dispatches',
                         permission: 'dispatches.view',
+                        features: ['sales.module'],
                     },
                     {
                         name: 'Sales Invoices',
                         path: '/erp/sales-invoices',
                         permission: 'sales_invoices.view',
+                        features: ['sales.module'],
                     },
                     {
                         name: 'Sales Returns',
                         path: '/erp/sales-returns',
                         permission: 'sales_returns.view',
+                        features: ['sales.module'],
                     },
                     {
                         name: 'Customer Receipts',
                         path: '/erp/customer-receipts',
                         permission: 'customer_receipts.view',
+                        features: ['accounts_receivable.module'],
                     },
                     {
                         name: 'Customer Credits',
                         path: '/erp/customer-credits',
                         permission: 'customer_credits.view',
+                        features: ['accounts_receivable.module'],
                     },
                     {
                         name: 'Credit Applications',
                         path: '/erp/customer-credit-applications',
                         permission: 'customer_credit_applications.view',
+                        features: ['accounts_receivable.module'],
                     },
                     {
                         name: 'Customer Refunds',
                         path: '/erp/customer-refunds',
                         permission: 'customer_refunds.view',
+                        features: ['accounts_receivable.module'],
                     },
                     {
                         name: 'AR Adjustments',
                         path: '/erp/customer-ar-adjustments',
                         permission: 'customer_ar_adjustments.view',
+                        features: ['accounts_receivable.module'],
                     },
                 ],
             },
@@ -317,31 +345,37 @@ const menuGroups: MenuGroup[] = [
                         name: 'Treasury Dashboard',
                         path: '/erp/treasury',
                         permission: 'treasury.view',
+                        features: ['treasury.module'],
                     },
                     {
                         name: 'Transaction Register',
                         path: '/erp/treasury/register',
                         permission: 'treasury.view',
+                        features: ['treasury.module'],
                     },
                     {
                         name: 'Transfers',
                         path: '/erp/treasury/transfers',
                         permission: 'treasury_transfers.view',
+                        features: ['treasury.module'],
                     },
                     {
                         name: 'Adjustments',
                         path: '/erp/treasury/adjustments',
                         permission: 'treasury_adjustments.view',
+                        features: ['treasury.module'],
                     },
                     {
                         name: 'Bank Statements',
                         path: '/erp/treasury/bank-statements',
                         permission: 'bank_statements.view',
+                        features: ['treasury.module'],
                     },
                     {
                         name: 'Bank Reconciliations',
                         path: '/erp/treasury/bank-reconciliations',
                         permission: 'bank_reconciliations.view',
+                        features: ['treasury.module'],
                     },
                 ],
             },
@@ -351,23 +385,41 @@ const menuGroups: MenuGroup[] = [
                 subItems: [
                     {
                         name: 'Stock Summary',
-                        path: '/erp/inventory',
+                        path: namedPath('inventory.index'),
                         permission: 'inventory.view',
+                        features: ['inventory.module'],
                     },
                     {
                         name: 'Stock Ledger',
-                        path: '/erp/inventory/ledger',
+                        path: namedPath(
+                            'inventory.ledger.index',
+                        ),
                         permission: 'inventory.view_ledger',
+                        features: ['inventory.module'],
                     },
                     {
                         name: 'Transfers',
-                        path: '/erp/inventory/transfers',
+                        path: namedPath(
+                            'inventory.transfers.index',
+                        ),
                         permission: 'inventory.transfer',
+                        features: ['inventory.module', 'inventory.advanced'],
                     },
                     {
                         name: 'Adjustments',
-                        path: '/erp/inventory/adjustments',
+                        path: namedPath(
+                            'inventory.adjustments.index',
+                        ),
                         permission: 'inventory.adjust',
+                        features: ['inventory.module', 'inventory.advanced'],
+                    },
+                    {
+                        name: 'Stock Counts',
+                        path: namedPath(
+                            'inventory.counts.index',
+                        ),
+                        permission: 'inventory.count',
+                        features: ['inventory.module', 'inventory.advanced'],
                     },
                 ],
             },
@@ -386,6 +438,7 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-payable.aging',
                         ),
                         permission: 'reports.payables',
+                        features: ['accounts_payable.module'],
                     },
                     {
                         name: 'Supplier Statement',
@@ -393,6 +446,7 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-payable.supplier-statement',
                         ),
                         permission: 'reports.payables',
+                        features: ['accounts_payable.module'],
                     },
                 ],
             },
@@ -404,31 +458,37 @@ const menuGroups: MenuGroup[] = [
                         name: 'Control Dashboard',
                         path: namedPath('financial-control.index'),
                         permission: 'financial_control.view',
+                        features: ['financial_accounting.module'],
                     },
                     {
                         name: 'Trial Balance',
                         path: namedPath('reports.financial-statements.trial-balance'),
                         permission: 'financial_statements.view',
+                        features: ['financial_accounting.module'],
                     },
                     {
                         name: 'Profit and Loss',
                         path: namedPath('reports.financial-statements.profit-and-loss'),
                         permission: 'financial_statements.view',
+                        features: ['financial_accounting.module'],
                     },
                     {
                         name: 'Balance Sheet',
                         path: namedPath('reports.financial-statements.balance-sheet'),
                         permission: 'financial_statements.view',
+                        features: ['financial_accounting.module'],
                     },
                     {
                         name: 'Cash Flow',
                         path: namedPath('reports.financial-statements.cash-flow'),
                         permission: 'financial_statements.view',
+                        features: ['financial_accounting.module'],
                     },
                     {
                         name: 'Reconciliations',
                         path: namedPath('financial-control.reconciliations'),
                         permission: 'financial_control.view',
+                        features: ['financial_accounting.module'],
                     },
                 ],
             },
@@ -440,51 +500,61 @@ const menuGroups: MenuGroup[] = [
                         name: 'Executive Dashboard',
                         path: namedPath('management.index'),
                         permission: 'management_dashboard.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Budgets',
                         path: namedPath('management.budgets.index'),
                         permission: 'management_budgets.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Branch Profitability',
                         path: namedPath('management.reports.branch-profitability'),
                         permission: 'management_reports.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Budget vs Actual',
                         path: namedPath('management.reports.budget-vs-actual'),
                         permission: 'management_reports.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Product Profitability',
                         path: namedPath('management.reports.product-profitability'),
                         permission: 'management_reports.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Customer Profitability',
                         path: namedPath('management.reports.customer-profitability'),
                         permission: 'management_reports.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Supplier Spend',
                         path: namedPath('management.reports.supplier-spend'),
                         permission: 'management_reports.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Gross Margin',
                         path: namedPath('management.reports.gross-margin'),
                         permission: 'management_reports.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Scheduled Reports',
                         path: namedPath('management.schedules.index'),
                         permission: 'management_report_schedules.view',
+                        features: ['management_reporting.module'],
                     },
                     {
                         name: 'Production Readiness',
                         path: namedPath('management.production-readiness'),
                         permission: 'management_readiness.view',
+                        features: ['management_reporting.module'],
                     },
                 ],
             },
@@ -498,6 +568,7 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-receivable.aging',
                         ),
                         permission: 'reports.receivables',
+                        features: ['accounts_receivable.module'],
                     },
                     {
                         name: 'Customer Statement',
@@ -505,6 +576,7 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-receivable.customer-statement',
                         ),
                         permission: 'reports.receivables',
+                        features: ['accounts_receivable.module'],
                     },
                     {
                         name: 'Open Invoices',
@@ -512,6 +584,7 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-receivable.open-invoices',
                         ),
                         permission: 'reports.receivables',
+                        features: ['accounts_receivable.module'],
                     },
                     {
                         name: 'Overdue Invoices',
@@ -519,6 +592,7 @@ const menuGroups: MenuGroup[] = [
                             'reports.accounts-receivable.overdue-invoices',
                         ),
                         permission: 'reports.receivables',
+                        features: ['accounts_receivable.module'],
                     },
                 ],
             },
@@ -552,9 +626,17 @@ const visibleMenuGroups: ComputedRef<MenuGroup[]> = computed(
                 ): MenuItem[] => {
                     if (item.subItems !== undefined) {
                         const subItems = item.subItems.filter(
-                            (subItem: SubmenuItem): boolean =>
-                                subItem.permission === undefined
-                                || can(subItem.permission),
+                            (subItem: SubmenuItem): boolean => {
+                                const hasPermission =
+                                    subItem.permission === undefined
+                                    || can(subItem.permission);
+
+                                const hasFeatures =
+                                    subItem.features === undefined
+                                    || canUseAll(subItem.features);
+
+                                return hasPermission && hasFeatures;
+                            },
                         );
 
                         if (subItems.length === 0) {
@@ -572,6 +654,13 @@ const visibleMenuGroups: ComputedRef<MenuGroup[]> = computed(
                     if (
                         item.permission !== undefined
                         && !can(item.permission)
+                    ) {
+                        return visibleItems;
+                    }
+
+                    if (
+                        item.features !== undefined
+                        && !canUseAll(item.features)
                     ) {
                         return visibleItems;
                     }

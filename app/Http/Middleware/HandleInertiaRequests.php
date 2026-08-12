@@ -7,10 +7,12 @@ namespace App\Http\Middleware;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Organisation\BranchAccessService;
+use App\Services\Saas\SaasEntitlementService;
 use App\Support\Notifications\UserNotificationPresenter;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Tighten\Ziggy\Ziggy;
 
 final class HandleInertiaRequests extends Middleware
 {
@@ -23,6 +25,7 @@ final class HandleInertiaRequests extends Middleware
         private readonly UserNotificationPresenter $notificationPresenter,
         private readonly BranchAccessService $branchAccessService,
         private readonly TenantContext $tenantContext,
+        private readonly SaasEntitlementService $saasEntitlementService,
     ) {
     }
 
@@ -44,9 +47,25 @@ final class HandleInertiaRequests extends Middleware
                 'Wholesale Distribution ERP',
             ),
 
+            /*
+             * Ziggy route information is shared through Inertia so that the
+             * same configuration is available to browser rendering and SSR.
+             *
+             * The current request URL is required during SSR because there
+             * is no browser window/location object on the Node side.
+             */
+            'ziggy' => fn (): array => [
+                ...(new Ziggy())->toArray(),
+
+                'location' => $request->url(),
+            ],
+
             'auth' => $this->getAuthData(
                 $request,
             ),
+
+            'saas' => fn (): array =>
+                $this->getSaasData($request),
 
             'headerNotifications' => fn (): array =>
                 $this->getHeaderNotificationData(
@@ -228,6 +247,80 @@ final class HandleInertiaRequests extends Middleware
                                 $assignedBranch->status,
                         ],
             ],
+        ];
+    }
+
+
+    /**
+     * @return array{
+     *     subscription: array{
+     *         status: string,
+     *         trial_ends_at: string|null,
+     *         current_period_ends_at: string|null,
+     *         grace_ends_at: string|null,
+     *         plan: array{
+     *             id: int,
+     *             code: string,
+     *             name: string
+     *         }
+     *     }|null,
+     *     features: list<string>,
+     *     limits: array<string, int|null>
+     * }
+     */
+    private function getSaasData(Request $request): array
+    {
+        $user = $request->user();
+
+        if (
+            !$user instanceof User
+            || $this->tenantContext->id() === null
+        ) {
+            return $this->emptySaasData();
+        }
+
+        $tenant = $this->tenantContext->tenant();
+        $subscription = $this->saasEntitlementService
+            ->subscription($tenant);
+
+        $plan = $subscription?->plan;
+
+        return [
+            'subscription' => $subscription === null || $plan === null
+                ? null
+                : [
+                    'status' => $subscription->status,
+                    'trial_ends_at' => $subscription->trial_ends_at?->toIso8601String(),
+                    'current_period_ends_at' => $subscription->current_period_ends_at?->toIso8601String(),
+                    'grace_ends_at' => $subscription->grace_ends_at?->toIso8601String(),
+                    'plan' => [
+                        'id' => (int) $plan->getKey(),
+                        'code' => $plan->code,
+                        'name' => $plan->name,
+                    ],
+                ],
+
+            'features' => $this->saasEntitlementService
+                ->enabledFeatureKeys($tenant),
+
+            'limits' => $this->saasEntitlementService
+                ->limits($tenant),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     subscription: null,
+     *     features: list<string>,
+     *     limits: array<string, int|null>
+     * }
+     */
+    private function emptySaasData(): array
+    {
+        return [
+            'subscription' => null,
+            'features' => [],
+            'limits' => [],
         ];
     }
 

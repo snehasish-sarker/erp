@@ -7,6 +7,7 @@ namespace App\Services\Files;
 use App\Models\Tenant;
 use App\Models\TenantFile;
 use App\Models\User;
+use App\Services\Saas\SaasUsageLimitService;
 use App\Support\Files\TenantFileCategoryRegistry;
 use App\Support\Tenancy\TenantContext;
 use Carbon\CarbonImmutable;
@@ -25,6 +26,7 @@ final class TenantFileStorageService
     public function __construct(
         private readonly TenantContext $tenantContext,
         private readonly TenantFileCategoryRegistry $categoryRegistry,
+        private readonly SaasUsageLimitService $saasUsageLimitService,
     ) {
     }
 
@@ -225,62 +227,98 @@ final class TenantFileStorageService
             $file->getClientOriginalName(),
         );
 
-        $storedPath = Storage::disk($disk)
-            ->putFileAs(
-                $directory,
-                $file,
-                $storedName,
-                [
-                    'visibility' => 'private',
-                ],
-            );
-
-        if (
-            !is_string($storedPath)
-            || $storedPath === ''
-        ) {
-            throw ValidationException::withMessages([
-                'file' => [
-                    'The file could not be stored.',
-                ],
-            ]);
-        }
+        $storedPath = null;
 
         try {
-            return TenantFile::query()->create([
-                'uploaded_by_user_id' =>
-                    $uploader?->getKey(),
+            return DB::transaction(
+                function () use (
+                    $attachable,
+                    $category,
+                    $checksum,
+                    $directory,
+                    $disk,
+                    $extension,
+                    $file,
+                    $metadata,
+                    $mimeType,
+                    $originalName,
+                    $sizeBytes,
+                    $storedName,
+                    $uploader,
+                    &$storedPath,
+                ): TenantFile {
+                    /*
+                     * The tenant row is locked by SaasUsageLimitService while
+                     * the quota is checked. Keeping the file write inside the
+                     * same transaction serializes concurrent uploads for the
+                     * same tenant and prevents quota races.
+                     */
+                    $this->saasUsageLimitService
+                        ->assertCanStoreFileBytes($sizeBytes);
 
-                'disk' => $disk,
-                'category' => $category,
-                'original_name' => $originalName,
-                'stored_name' => $storedName,
-                'path' => $storedPath,
-                'mime_type' => $mimeType,
+                    $storedPath = Storage::disk($disk)
+                        ->putFileAs(
+                            $directory,
+                            $file,
+                            $storedName,
+                            [
+                                'visibility' => 'private',
+                            ],
+                        );
 
-                'extension' => $extension === ''
-                    ? null
-                    : $extension,
+                    if (
+                        !is_string($storedPath)
+                        || $storedPath === ''
+                    ) {
+                        throw ValidationException::withMessages([
+                            'file' => [
+                                'The file could not be stored.',
+                            ],
+                        ]);
+                    }
 
-                'size_bytes' => $sizeBytes,
-                'checksum_sha256' => $checksum,
-                'visibility' => 'private',
-                'status' => 'active',
+                    return TenantFile::query()->create([
+                        'uploaded_by_user_id' =>
+                            $uploader?->getKey(),
 
-                'attachable_type' =>
-                    $attachable?->getMorphClass(),
+                        'disk' => $disk,
+                        'category' => $category,
+                        'original_name' => $originalName,
+                        'stored_name' => $storedName,
+                        'path' => $storedPath,
+                        'mime_type' => $mimeType,
 
-                'attachable_id' =>
-                    $attachable?->getKey(),
+                        'extension' => $extension === ''
+                            ? null
+                            : $extension,
 
-                'metadata' => $metadata === []
-                    ? null
-                    : $metadata,
-            ]);
-        } catch (Throwable $exception) {
-            Storage::disk($disk)->delete(
-                $storedPath,
+                        'size_bytes' => $sizeBytes,
+                        'checksum_sha256' => $checksum,
+                        'visibility' => 'private',
+                        'status' => 'active',
+
+                        'attachable_type' =>
+                            $attachable?->getMorphClass(),
+
+                        'attachable_id' =>
+                            $attachable?->getKey(),
+
+                        'metadata' => $metadata === []
+                            ? null
+                            : $metadata,
+                    ]);
+                },
+                attempts: 1,
             );
+        } catch (Throwable $exception) {
+            if (
+                is_string($storedPath)
+                && $storedPath !== ''
+            ) {
+                Storage::disk($disk)->delete(
+                    $storedPath,
+                );
+            }
 
             throw $exception;
         }

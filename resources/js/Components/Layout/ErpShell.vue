@@ -2,6 +2,7 @@
 import AppHeader from '@/Components/Layout/AppHeader.vue';
 import AppSidebar from '@/Components/Layout/AppSidebar.vue';
 import Backdrop from '@/Components/Layout/Backdrop.vue';
+import SubscriptionStatusBanner from '@/Components/Saas/SubscriptionStatusBanner.vue';
 import { useSidebar } from '@/Composables/useSidebar';
 
 const {
@@ -25,6 +26,8 @@ const {
             "
         >
             <AppHeader />
+
+            <SubscriptionStatusBanner />
 
             <main
                 class="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6"
